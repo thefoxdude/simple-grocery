@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from './firebase/config'
-import { ChefHat, ShoppingCart, Calendar } from 'lucide-react'
+import { ChefHat, ShoppingCart, Calendar, Loader } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
 import GroceryListTab from './components/GroceryListTab'
 import MealsTab from './components/MealsTab'
@@ -32,6 +32,7 @@ const MealPlanner = () => {
 
     loadMeals();
   }, [])
+
   const [newMeal, setNewMeal] = useState({ 
     name: '', 
     ingredients: [{ name: '', amount: '', unit: '' }]
@@ -49,9 +50,28 @@ const MealPlanner = () => {
 
   const [weekPlan, setWeekPlan] = useState(initialWeekPlan)
 
+  if (isLoadingMeals) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
+          <h2 className="text-red-800 font-medium mb-2">Error Loading Meals</h2>
+          <p className="text-red-600">{loadError}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Meal Planner Test With Github</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Meal Planner</h1>
       
       <div className="w-full">
         <div className="grid grid-cols-3 border-b mb-6">
@@ -78,16 +98,27 @@ const MealPlanner = () => {
           </button>
         </div>
 
-        {activeTab === 'meal-plan' && <MealPlanTab weekPlan={weekPlan} setWeekPlan={setWeekPlan} meals={meals} />}
-        {activeTab === 'grocery-list' && <GroceryListTab meals={meals} weekPlan={weekPlan} />}
-        {activeTab === 'meals' && 
+        {activeTab === 'meal-plan' && (
+          <MealPlanTab 
+            weekPlan={weekPlan} 
+            setWeekPlan={setWeekPlan} 
+            meals={meals} 
+          />
+        )}
+        {activeTab === 'grocery-list' && (
+          <GroceryListTab 
+            meals={meals} 
+            weekPlan={weekPlan} 
+          />
+        )}
+        {activeTab === 'meals' && (
           <MealsTab 
             meals={meals} 
             setMeals={setMeals}
             newMeal={newMeal}
             setNewMeal={setNewMeal}
           />
-        }
+        )}
       </div>
     </div>
   )
