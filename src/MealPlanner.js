@@ -5,33 +5,15 @@ import { ChefHat, ShoppingCart, Calendar, Loader } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
 import GroceryListTab from './components/GroceryListTab'
 import MealsTab from './components/MealsTab'
+import { useMeals } from './hooks/useMeals'
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan")
-  const [meals, setMeals] = useState([])
-  const [isLoadingMeals, setIsLoadingMeals] = useState(true)
-  const [loadError, setLoadError] = useState(null)
+  const { meals, setMeals, loadUserMeals, isLoading, error } = useMeals()
 
   useEffect(() => {
-    const loadMeals = async () => {
-      try {
-        const mealsRef = collection(db, 'meals');
-        const snapshot = await getDocs(mealsRef);
-        const loadedMeals = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setMeals(loadedMeals);
-      } catch (err) {
-        console.error('Error loading meals:', err);
-        setLoadError(err.message);
-      } finally {
-        setIsLoadingMeals(false);
-      }
-    };
-
-    loadMeals();
-  }, [])
+    loadUserMeals();
+  }, [loadUserMeals])
 
   const [newMeal, setNewMeal] = useState({ 
     name: '', 
@@ -50,7 +32,7 @@ const MealPlanner = () => {
 
   const [weekPlan, setWeekPlan] = useState(initialWeekPlan)
 
-  if (isLoadingMeals) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader className="h-8 w-8 animate-spin text-blue-500" />
@@ -58,12 +40,12 @@ const MealPlanner = () => {
     )
   }
 
-  if (loadError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
           <h2 className="text-red-800 font-medium mb-2">Error Loading Meals</h2>
-          <p className="text-red-600">{loadError}</p>
+          <p className="text-red-600">{error}</p>
         </div>
       </div>
     )

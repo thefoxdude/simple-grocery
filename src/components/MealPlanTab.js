@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, ChevronDown, Loader } from 'lucide-react';
-import { useMeals } from '../hooks/useMeals';
+import { Plus, Trash2, ChevronDown } from 'lucide-react';
 
-const MealPlanTab = ({ meals = [], weekPlan, setWeekPlan }) => {
+const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
   const [expandedDays, setExpandedDays] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('');
   const modalRef = useRef(null);
   const [expandState, setExpandState] = useState('none'); // 'all' or 'none'
-  const { isLoading, error } = useMeals();
 
   // Set tomorrow's column to be expanded by default
   useEffect(() => {
@@ -91,24 +89,15 @@ const MealPlanTab = ({ meals = [], weekPlan, setWeekPlan }) => {
             <ChevronDown className="h-6 w-6" />
           </button>
         </div>
-        {error && (
-          <div className="mb-4 text-red-500 text-sm">{error}</div>
-        )}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader className="h-6 w-6 animate-spin text-blue-500" />
-          </div>
-        ) : (
-          <select 
-            className="w-full p-2 border rounded"
-            onChange={(e) => addMealToDay(e.target.value, selectedDay, selectedMealType)}
-          >
-            <option value="">Choose a meal...</option>
-            {meals.map(meal => (
-              <option key={meal.id} value={meal.id}>{meal.name}</option>
-            ))}
-          </select>
-        )}
+        <select 
+          className="w-full p-2 border rounded"
+          onChange={(e) => addMealToDay(e.target.value, selectedDay, selectedMealType)}
+        >
+          <option value="">Choose a meal...</option>
+          {meals.map(meal => (
+            <option key={meal.id} value={meal.id}>{meal.name}</option>
+          ))}
+        </select>
       </div>
     </div>
   );
