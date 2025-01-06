@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from './firebase/config'
 import { ChefHat, ShoppingCart, Calendar, Loader } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
 import GroceryListTab from './components/GroceryListTab'

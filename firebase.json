@@ -3,11 +3,17 @@
     "rules": "database.rules.json"
   },
   "hosting": {
-    "public": "src",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   },
   "headers": [
@@ -23,5 +29,9 @@
       "key": "Expires",
       "value": "0"
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }
