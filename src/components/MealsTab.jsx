@@ -5,7 +5,7 @@ import SearchBar from '../forms/SearchBar';
 import MealList from './MealList';
 
 const MealsTab = ({
-  newMeal = { name: '', ingredients: [{ name: '', amount: '', unit: '' }] },
+  newMeal = { name: '', recipe: '', ingredients: [{ name: '', amount: '', unit: '' }] },
   setNewMeal
 }) => {
   const [expandedMeals, setExpandedMeals] = useState(new Set());
@@ -41,17 +41,22 @@ const MealsTab = ({
   };
 
   const addMeal = async () => {
+    
     if (newMeal.name && newMeal.ingredients.some(i => i.name)) {
       const cleanedIngredients = newMeal.ingredients.filter(i => i.name);
       const mealData = {
         name: newMeal.name,
+        recipe: newMeal.recipe || '',
         ingredients: cleanedIngredients
       };
       
       try {
-        await saveMeal(mealData);
+        const savedMeal = await saveMeal(mealData);
+        console.log('Meal saved successfully:', savedMeal);
+        
         setNewMeal({ 
           name: '', 
+          recipe: '',
           ingredients: [{ name: '', amount: '', unit: '' }]
         });
       } catch (err) {

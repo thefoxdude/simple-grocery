@@ -36,6 +36,12 @@ const MealItem = ({ meal, isExpanded, onToggleExpand, onDelete, isDeleting }) =>
                 </li>
               ))}
             </ul>
+            {meal.recipe && (
+              <div className="mt-4">
+                <strong>Recipe:</strong>
+                <p className="mt-2 whitespace-pre-wrap">{meal.recipe}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
