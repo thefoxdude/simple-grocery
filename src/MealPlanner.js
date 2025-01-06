@@ -71,7 +71,7 @@ const MealPlanner = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Meal Planner</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Meal Planner with github hosting</h1>
       
       <div className="w-full">
         <div className="grid grid-cols-3 border-b mb-6">
