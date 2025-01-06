@@ -1,38 +1,26 @@
 import React, { useState, useEffect } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from './firebase/config'
 import { ChefHat, ShoppingCart, Calendar, Loader } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
 import GroceryListTab from './components/GroceryListTab'
 import MealsTab from './components/MealsTab'
 import { useMeals } from './hooks/useMeals'
+import { useMealPlan } from './hooks/useMealPlan'
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan")
-  const { meals, setMeals, loadUserMeals, isLoading, error } = useMeals()
-
-  useEffect(() => {
-    loadUserMeals();
-  }, [loadUserMeals])
+  const { meals, loadUserMeals, isLoading: mealsLoading, error: mealsError } = useMeals()
+  const { weekPlan } = useMealPlan()
 
   const [newMeal, setNewMeal] = useState({ 
     name: '', 
     ingredients: [{ name: '', amount: '', unit: '' }]
   })
 
-  const initialWeekPlan = {
-    Sunday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Monday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Tuesday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Wednesday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Thursday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Friday: { breakfast: [], lunch: [], dinner: [], snacks: [] },
-    Saturday: { breakfast: [], lunch: [], dinner: [], snacks: [] }
-  }
+  useEffect(() => {
+    loadUserMeals();
+  }, [loadUserMeals])
 
-  const [weekPlan, setWeekPlan] = useState(initialWeekPlan)
-
-  if (isLoading) {
+  if (mealsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader className="h-8 w-8 animate-spin text-blue-500" />
@@ -40,12 +28,12 @@ const MealPlanner = () => {
     )
   }
 
-  if (error) {
+  if (mealsError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
           <h2 className="text-red-800 font-medium mb-2">Error Loading Meals</h2>
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600">{mealsError}</p>
         </div>
       </div>
     )
@@ -81,11 +69,7 @@ const MealPlanner = () => {
         </div>
 
         {activeTab === 'meal-plan' && (
-          <MealPlanTab 
-            weekPlan={weekPlan} 
-            setWeekPlan={setWeekPlan} 
-            meals={meals} 
-          />
+          <MealPlanTab meals={meals} />
         )}
         {activeTab === 'grocery-list' && (
           <GroceryListTab 
@@ -95,8 +79,6 @@ const MealPlanner = () => {
         )}
         {activeTab === 'meals' && (
           <MealsTab 
-            meals={meals} 
-            setMeals={setMeals}
             newMeal={newMeal}
             setNewMeal={setNewMeal}
           />

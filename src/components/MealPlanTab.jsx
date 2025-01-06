@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { Loader } from 'lucide-react';
 import AddMealModal from '../forms/AddMealModal';
 import DayColumn from './DayColumn';
+import { useMealPlan } from '../hooks/useMealPlan';
 
-const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
+const MealPlanTab = ({ meals }) => {
+  const { 
+    weekPlan, 
+    setWeekPlan, 
+    loadUserMealPlan, 
+    isLoading, 
+    isSaving, 
+    error,
+    DAYS_OF_WEEK
+  } = useMealPlan();
+
   const [expandedDays, setExpandedDays] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('');
-  const [expandState, setExpandState] = useState('none'); // 'all' or 'none'
+  const [expandState, setExpandState] = useState('none');
+
+  useEffect(() => {
+    loadUserMealPlan();
+  }, [loadUserMealPlan]);
 
   // Set tomorrow's column to be expanded by default
   useEffect(() => {
@@ -36,28 +52,40 @@ const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
     setExpandedDays(newExpandedState);
   };
 
-  const addMealToDay = (mealId, day, mealType) => {
+  const addMealToDay = async (mealId, day, mealType) => {
     const selectedMeal = meals.find(m => m.id === mealId);
     if (selectedMeal) {
-      setWeekPlan(prev => ({
-        ...prev,
+      const updatedWeekPlan = {
+        ...weekPlan,
         [day]: {
-          ...prev[day],
-          [mealType]: [...prev[day][mealType], selectedMeal]
+          ...weekPlan[day],
+          [mealType]: [...weekPlan[day][mealType], selectedMeal]
         }
-      }));
-      setShowModal(false);
+      };
+      
+      try {
+        await setWeekPlan(updatedWeekPlan);
+        setShowModal(false);
+      } catch (err) {
+        console.error('Failed to add meal:', err);
+      }
     }
   };
 
-  const removeMealFromDay = (day, mealType, index) => {
-    setWeekPlan(prev => ({
-      ...prev,
+  const removeMealFromDay = async (day, mealType, index) => {
+    const updatedWeekPlan = {
+      ...weekPlan,
       [day]: {
-        ...prev[day],
-        [mealType]: prev[day][mealType].filter((_, i) => i !== index)
+        ...weekPlan[day],
+        [mealType]: weekPlan[day][mealType].filter((_, i) => i !== index)
       }
-    }));
+    };
+    
+    try {
+      await setWeekPlan(updatedWeekPlan);
+    } catch (err) {
+      console.error('Failed to remove meal:', err);
+    }
   };
 
   const handleAddMealClick = (day, mealType) => {
@@ -66,8 +94,32 @@ const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
     setShowModal(true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-center py-8">
+        Error loading meal plan: {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {isSaving && (
+        <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md 
+                      shadow-lg flex items-center">
+          <Loader className="h-4 w-4 animate-spin mr-2" />
+          Saving changes...
+        </div>
+      )}
+
       {/* Control buttons */}
       <div className="flex justify-end">
         <div className="inline-flex rounded-md border p-1 bg-white">
@@ -98,11 +150,11 @@ const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
 
       {/* Mobile view */}
       <div className="block xl:hidden space-y-4">
-        {Object.entries(weekPlan).map(([day, meals]) => (
+        {DAYS_OF_WEEK.map(day => (
           <DayColumn
             key={day}
             day={day}
-            meals={meals}
+            meals={weekPlan[day]}
             isExpanded={expandedDays[day]}
             onToggleExpand={toggleDayExpansion}
             onAddMeal={handleAddMealClick}
@@ -114,7 +166,7 @@ const MealPlanTab = ({ meals, weekPlan, setWeekPlan }) => {
 
       {/* Desktop view */}
       <div className="hidden xl:grid grid-cols-7 gap-4">
-        {Object.entries(weekPlan).map(([day, meals]) => (
+        {DAYS_OF_WEEK.map(day => (
           <DayColumn
             key={day}
             day={day}
