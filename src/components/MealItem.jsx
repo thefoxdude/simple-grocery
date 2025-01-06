@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, ChevronDown, Loader } from 'lucide-react';
+import { Trash2, Loader } from 'lucide-react';
 
 const MealItem = ({ meal, isExpanded, onToggleExpand, onDelete, isDeleting }) => {
   return (
