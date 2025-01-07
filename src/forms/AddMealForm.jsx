@@ -37,12 +37,6 @@ const AddMealForm = ({ newMeal, setNewMeal, addMeal, isSaving, operationError })
               onChange={(field, value) => updateIngredient(idx, field, value)}
             />
           ))}
-          <textarea
-            placeholder="Recipe instructions"
-            value={newMeal.recipe}
-            onChange={(e) => setNewMeal(prev => ({ ...prev, recipe: e.target.value }))}
-            className="w-full p-2 border rounded h-32"
-          />
           <button 
             onClick={addIngredientField}
             className="px-4 py-2 border rounded hover:bg-gray-50 flex items-center"
@@ -52,6 +46,12 @@ const AddMealForm = ({ newMeal, setNewMeal, addMeal, isSaving, operationError })
           {operationError && (
             <div className="text-red-500 text-sm">{operationError}</div>
           )}
+          <textarea
+            placeholder="Recipe instructions"
+            value={newMeal.recipe}
+            onChange={(e) => setNewMeal(prev => ({ ...prev, recipe: e.target.value }))}
+            className="w-full p-2 border rounded h-32"
+          />
           <button 
             onClick={addMeal}
             disabled={isSaving}
