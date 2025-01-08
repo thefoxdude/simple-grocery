@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const AddMealModal = ({ selectedDay, selectedMealType, onClose, meals, onAddMeal }) => {
+const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -20,8 +20,8 @@ const AddMealModal = ({ selectedDay, selectedMealType, onClose, meals, onAddMeal
       <div ref={modalRef} className="bg-white rounded-lg p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">
-            <span className="block xl:hidden">Add Meal</span>
-            <span className="hidden xl:block">Add Meal to {selectedDay} - {selectedMealType}</span>
+            <span className="block xl:hidden">Add Dish</span>
+            <span className="hidden xl:block">Add Dish to {selectedDay} - {selectedDishType}</span>
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
             <ChevronDown className="h-6 w-6" />
@@ -29,11 +29,11 @@ const AddMealModal = ({ selectedDay, selectedMealType, onClose, meals, onAddMeal
         </div>
         <select 
           className="w-full p-2 border rounded"
-          onChange={(e) => onAddMeal(e.target.value, selectedDay, selectedMealType)}
+          onChange={(e) => onAddDish(e.target.value, selectedDay, selectedDishType)}
         >
-          <option value="">Choose a meal...</option>
-          {meals.map(meal => (
-            <option key={meal.id} value={meal.id}>{meal.name}</option>
+          <option value="">Choose a dish...</option>
+          {dishes.map(dish => (
+            <option key={dish.id} value={dish.id}>{dish.name}</option>
           ))}
         </select>
       </div>
@@ -41,4 +41,4 @@ const AddMealModal = ({ selectedDay, selectedMealType, onClose, meals, onAddMeal
   );
 };
 
-export default AddMealModal;
+export default AddDishModal;

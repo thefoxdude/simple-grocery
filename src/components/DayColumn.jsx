@@ -3,11 +3,11 @@ import { Plus, Trash2, ChevronDown } from 'lucide-react';
 
 const DayColumn = ({ 
   day, 
-  meals, 
+  dishes, 
   isExpanded, 
   onToggleExpand, 
-  onAddMeal, 
-  onRemoveMeal, 
+  onAddDish, 
+  onRemoveDish, 
   weekPlan 
 }) => {
   return (
@@ -24,18 +24,18 @@ const DayColumn = ({
         </button>
         {isExpanded && (
           <div className="space-y-3 xl:space-y-4">
-            {['breakfast', 'lunch', 'dinner', 'snacks'].map(mealType => (
-              <div key={mealType} className="border-t pt-2">
-                <h4 className="font-medium capitalize text-sm xl:text-base">{mealType}</h4>
+            {['breakfast', 'lunch', 'dinner', 'snacks'].map(dishType => (
+              <div key={dishType} className="border-t pt-2">
+                <h4 className="font-medium capitalize text-sm xl:text-base">{dishType}</h4>
                 <div className="mt-1 space-y-1">
-                  {weekPlan[day][mealType].map((meal, idx) => (
-                    <div key={`${meal.id}-${idx}`} 
+                  {weekPlan[day][dishType].map((dish, idx) => (
+                    <div key={`${dish.id}-${idx}`} 
                       className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm"
                     >
-                      <span className="truncate mr-2">{meal.name}</span>
+                      <span className="truncate mr-2">{dish.name}</span>
                       <button 
                         className="p-1 hover:bg-gray-200 rounded shrink-0"
-                        onClick={() => onRemoveMeal(day, mealType, idx)}
+                        onClick={() => onRemoveDish(day, dishType, idx)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -43,7 +43,7 @@ const DayColumn = ({
                   ))}
                   <button 
                     className="w-full mt-1 px-2 py-1 text-sm border rounded-md hover:bg-gray-50 flex items-center justify-center"
-                    onClick={() => onAddMeal(day, mealType)}
+                    onClick={() => onAddDish(day, dishType)}
                   >
                     <Plus className="h-3 w-3 mr-1" /> Add
                   </button>

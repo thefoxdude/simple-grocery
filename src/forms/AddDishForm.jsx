@@ -2,39 +2,47 @@ import React from 'react';
 import { Plus, Loader } from 'lucide-react';
 import IngredientInput from '../components/IngredientInput';
 
-const AddMealForm = ({ newMeal, setNewMeal, addMeal, isSaving, operationError }) => {
+const AddDishForm = ({ newDish, setnewDish, addDish, isSaving, operationError }) => {
   const addIngredientField = () => {
-    setNewMeal(prev => ({
+    setnewDish(prev => ({
       ...prev,
       ingredients: [...prev.ingredients, { name: '', amount: '', unit: '' }]
     }));
   };
 
   const updateIngredient = (index, field, value) => {
-    setNewMeal(prev => {
+    setnewDish(prev => {
       const newIngredients = [...prev.ingredients];
       newIngredients[index] = { ...newIngredients[index], [field]: value };
       return { ...prev, ingredients: newIngredients };
     });
   };
 
+  const removeIngredient = (indexToRemove) => {
+    setnewDish(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
   return (
     <div className="border rounded-lg mb-6">
       <div className="p-6">
-        <h3 className="text-lg font-bold mb-4">Add New Meal</h3>
+        <h3 className="text-lg font-bold mb-4">Add New Dish</h3>
         <div className="space-y-4">
           <input
             type="text"
-            placeholder="Meal name"
-            value={newMeal.name}
-            onChange={(e) => setNewMeal(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Dish name"
+            value={newDish.name}
+            onChange={(e) => setnewDish(prev => ({ ...prev, name: e.target.value }))}
             className="w-full p-2 border rounded"
           />
-          {newMeal.ingredients.map((ingredient, idx) => (
+          {newDish.ingredients.map((ingredient, idx) => (
             <IngredientInput
               key={idx}
               ingredient={ingredient}
               onChange={(field, value) => updateIngredient(idx, field, value)}
+              onRemove={newDish.ingredients.length > 1 ? () => removeIngredient(idx) : undefined}
             />
           ))}
           <button 
@@ -48,21 +56,26 @@ const AddMealForm = ({ newMeal, setNewMeal, addMeal, isSaving, operationError })
           )}
           <textarea
             placeholder="Recipe instructions"
-            value={newMeal.recipe}
-            onChange={(e) => setNewMeal(prev => ({ ...prev, recipe: e.target.value }))}
+            value={newDish.recipe}
+            onChange={(e) => setnewDish(prev => ({ ...prev, recipe: e.target.value }))}
             className="w-full p-2 border rounded h-32"
           />
           <button 
-            onClick={addMeal}
+            onClick={addDish}
             disabled={isSaving}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 border-2 border-dashed border-emerald-200 
+                 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 
+                 transition-all duration-200
+                 flex items-center justify-center gap-2
+                 text-emerald-600 hover:text-emerald-700"
+            aria-label="Add dish"
           >
             {isSaving ? (
               <Loader className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5" />
             )}
-            {isSaving ? 'Saving...' : 'Add Meal'}
+            {isSaving ? <span className="font-medium">Saving...</span> : <span className="font-medium">Add Dish</span>}
           </button>
         </div>
       </div>
@@ -70,4 +83,4 @@ const AddMealForm = ({ newMeal, setNewMeal, addMeal, isSaving, operationError })
   );
 };
 
-export default AddMealForm;
+export default AddDishForm;

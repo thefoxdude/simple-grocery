@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import { ChefHat, ShoppingCart, Calendar, Loader } from 'lucide-react'
+import { ShoppingCart, Calendar, Loader, Salad } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
 import GroceryListTab from './components/GroceryListTab'
-import MealsTab from './components/MealsTab'
-import { useMeals } from './hooks/useMeals'
+import DishesTab from './components/DishesTab'
+import { useDishes } from './hooks/useDishes'
 import { useMealPlan } from './hooks/useMealPlan'
+import { TabButton } from './components/TabButton'
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan")
-  const { meals, loadUserMeals, isLoading: mealsLoading, error: mealsError } = useMeals()
+  const { dishes, loadUserDishes, isLoading: dishesLoading, error: dishesError } = useDishes()
   const { weekPlan } = useMealPlan()
 
-  const [newMeal, setNewMeal] = useState({ 
-    name: '', 
-    ingredients: [{ name: '', amount: '', unit: '' }]
-  })
-
   useEffect(() => {
-    loadUserMeals();
-  }, [loadUserMeals])
+    loadUserDishes();
+  }, [loadUserDishes])
 
-  if (mealsLoading) {
+  if (dishesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader className="h-8 w-8 animate-spin text-blue-500" />
@@ -28,12 +24,12 @@ const MealPlanner = () => {
     )
   }
 
-  if (mealsError) {
+  if (dishesError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md">
-          <h2 className="text-red-800 font-medium mb-2">Error Loading Meals</h2>
-          <p className="text-red-600">{mealsError}</p>
+          <h2 className="text-red-800 font-medium mb-2">Error Loading dishes</h2>
+          <p className="text-red-600">{dishesError}</p>
         </div>
       </div>
     )
@@ -45,43 +41,22 @@ const MealPlanner = () => {
       
       <div className="w-full">
         <div className="grid grid-cols-3 border-b mb-6">
-          <button
-            className={`flex flex-col items-center justify-center px-4 py-2 ${activeTab === 'meal-plan' ? 'border-b-2 border-blue-500 -mb-px' : ''}`}
-            onClick={() => setActiveTab('meal-plan')}
-          >
-            <Calendar className="h-4 w-4 mb-1" />
-            <span>Meal Plan</span>
-          </button>
-          <button
-            className={`flex flex-col items-center justify-center px-4 py-2 ${activeTab === 'grocery-list' ? 'border-b-2 border-blue-500 -mb-px' : ''}`}
-            onClick={() => setActiveTab('grocery-list')}
-          >
-            <ShoppingCart className="h-4 w-4 mb-1" />
-            <span>Grocery List</span>
-          </button>
-          <button
-            className={`flex flex-col items-center justify-center px-4 py-2 ${activeTab === 'meals' ? 'border-b-2 border-blue-500 -mb-px' : ''}`}
-            onClick={() => setActiveTab('meals')}
-          >
-            <ChefHat className="h-4 w-4 mb-1" />
-            <span>Meals</span>
-          </button>
+          <TabButton icon={Calendar} label='Meal Plan' isActive={activeTab === 'meal-plan'} onClick={() => setActiveTab('meal-plan')} />
+          <TabButton icon={ShoppingCart} label='Grocery List' isActive={activeTab === 'grocery-list'} onClick={() => setActiveTab('grocery-list')} />
+          <TabButton icon={Salad} label='Dishes' isActive={activeTab === 'dishes'} onClick={() => setActiveTab('dishes')} />
         </div>
 
         {activeTab === 'meal-plan' && (
-          <MealPlanTab meals={meals} />
+          <MealPlanTab dishes={dishes} />
         )}
         {activeTab === 'grocery-list' && (
           <GroceryListTab 
-            meals={meals} 
+            dishes={dishes} 
             weekPlan={weekPlan} 
           />
         )}
-        {activeTab === 'meals' && (
-          <MealsTab 
-            newMeal={newMeal}
-            setNewMeal={setNewMeal}
-          />
+        {activeTab === 'dishes' && (
+          <DishesTab />
         )}
       </div>
     </div>
