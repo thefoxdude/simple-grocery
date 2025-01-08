@@ -11,38 +11,45 @@ const DayColumn = ({
   weekPlan 
 }) => {
   return (
-    <div className="border rounded-lg h-full bg-white">
+    <div className="border border-emerald-100 rounded-lg h-full bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="p-3 xl:p-4">
         <button 
-          className="w-full flex justify-between items-center mb-2 xl:mb-4 py-2"
+          className="w-full flex justify-between items-center mb-2 xl:mb-4 py-2
+                     text-emerald-800 hover:text-emerald-600 transition-colors duration-200"
           onClick={() => onToggleExpand(day)}
         >
           <span className="font-bold text-sm xl:text-base">{day}</span>
           <ChevronDown 
-            className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+            className={`h-4 w-4 transform transition-transform duration-200 text-emerald-500
+                       ${isExpanded ? 'rotate-180' : ''}`} 
           />
         </button>
         {isExpanded && (
           <div className="space-y-3 xl:space-y-4">
             {['breakfast', 'lunch', 'dinner', 'snacks'].map(dishType => (
-              <div key={dishType} className="border-t pt-2">
-                <h4 className="font-medium capitalize text-sm xl:text-base">{dishType}</h4>
+              <div key={dishType} className="border-t border-emerald-100 pt-2">
+                <h4 className="font-medium capitalize text-sm xl:text-base text-emerald-700">{dishType}</h4>
                 <div className="mt-1 space-y-1">
                   {weekPlan[day][dishType].map((dish, idx) => (
                     <div key={`${dish.id}-${idx}`} 
-                      className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm"
+                      className="flex items-center justify-between bg-emerald-50 p-2 rounded-md
+                               text-sm text-emerald-800 group"
                     >
                       <span className="truncate mr-2">{dish.name}</span>
                       <button 
-                        className="p-1 hover:bg-gray-200 rounded shrink-0"
+                        className="p-1 hover:bg-red-100 rounded-full transition-colors duration-200
+                                 opacity-0 group-hover:opacity-100"
                         onClick={() => onRemoveDish(day, dishType, idx)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 text-red-500" />
                       </button>
                     </div>
                   ))}
                   <button 
-                    className="w-full mt-1 px-2 py-1 text-sm border rounded-md hover:bg-gray-50 flex items-center justify-center"
+                    className="w-full mt-1 px-2 py-1.5 text-sm border border-emerald-200
+                             rounded-md hover:bg-emerald-50 hover:border-emerald-300
+                             flex items-center justify-center text-emerald-600
+                             transition-all duration-200"
                     onClick={() => onAddDish(day, dishType)}
                   >
                     <Plus className="h-3 w-3 mr-1" /> Add

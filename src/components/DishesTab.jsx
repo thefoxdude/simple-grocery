@@ -2,21 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useDishes } from '../hooks/useDishes';
 import SearchBar from '../forms/SearchBar';
 import DishList from './DishList';
-import AddDishForm from '../forms/AddDishForm';
+import AddNewDishModal from '../forms/AddNewDishModal';
+import { Plus, Loader } from 'lucide-react';
 
 const DishesTab = () => {
-  const [newDish, setnewDish] = useState({ 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newDish, setNewDish] = useState({ 
     name: '', 
-    ingredients: [{ name: '', amount: '', unit: '' }]
-  })
-  const [expandedDishes, setexpandedDishes] = useState(new Set());
+    ingredients: [{ name: '', amount: '', unit: '' }],
+    recipe: ''
+  });
+  const [expandedDishes, setExpandedDishes] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  
   const { 
     dishes, 
     saveDish, 
     deleteDish, 
     isSaving, 
-    isDeleting, 
+    isDeleting,
+    isLoading,
     operationError, 
     loadUserDishes 
   } = useDishes();
@@ -30,7 +35,7 @@ const DishesTab = () => {
   );
 
   const toggleDishExpansion = (dishId) => {
-    setexpandedDishes(prev => {
+    setExpandedDishes(prev => {
       const next = new Set(prev);
       if (next.has(dishId)) {
         next.delete(dishId);
@@ -54,11 +59,13 @@ const DishesTab = () => {
         const savedDish = await saveDish(dishData);
         console.log('Dish saved successfully:', savedDish);
         
-        setnewDish({ 
+        // Clear the form and close modal on successful save
+        setNewDish({ 
           name: '', 
           recipe: '',
           ingredients: [{ name: '', amount: '', unit: '' }]
         });
+        setIsModalOpen(false);
       } catch (err) {
         console.error('Failed to save dish:', err);
       }
@@ -74,26 +81,51 @@ const DishesTab = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader className="h-8 w-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <AddDishForm
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
+                    text-white rounded-lg transition-colors duration-200
+                    flex items-center gap-2"
+        >
+          <Plus className="h-5 w-5" />
+          Add New Dish
+        </button>
+      </div>
+
+      <div className="bg-emerald-50 rounded-lg p-6 space-y-6">
+        <SearchBar 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+        <DishList
+          filteredDishes={filteredDishes}
+          expandedDishes={expandedDishes}
+          toggleDishExpansion={toggleDishExpansion}
+          handleDeleteDish={handleDeleteDish}
+          isDeleting={isDeleting}
+          searchQuery={searchQuery}
+        />
+      </div>
+
+      <AddNewDishModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         newDish={newDish}
-        setnewDish={setnewDish}
+        setNewDish={setNewDish}
         addDish={addDish}
         isSaving={isSaving}
         operationError={operationError}
-      />
-      <SearchBar 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
-      <DishList
-        filteredDishes={filteredDishes}
-        expandedDishes={expandedDishes}
-        toggleDishExpansion={toggleDishExpansion}
-        handleDeleteDish={handleDeleteDish}
-        isDeleting={isDeleting}
-        searchQuery={searchQuery}
       />
     </div>
   );
