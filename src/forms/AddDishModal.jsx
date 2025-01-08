@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
