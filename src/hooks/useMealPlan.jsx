@@ -23,7 +23,6 @@ const createEmptyMealPlan = () => {
 const initialWeekPlan = createEmptyMealPlan();
 
 export const useMealPlan = () => {
-  const [weekPlan, setWeekPlan] = useState(initialWeekPlan);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,49 +35,46 @@ export const useMealPlan = () => {
     }, {});
   };
 
-  const loadUserMealPlan = useCallback(async () => {
+  const loadUserMealPlan = useCallback(async (weekId) => {
     setIsLoading(true);
     setError(null);
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      const mealPlanRef = doc(db, 'mealPlans', userId);
+      const mealPlanRef = doc(db, 'mealPlans', userId, 'weeks', weekId);
       const mealPlanDoc = await getDoc(mealPlanRef);
       
       if (mealPlanDoc.exists()) {
-        // Order the data before setting it to state
         const orderedPlan = orderMealPlan(mealPlanDoc.data().weekPlan);
-        setWeekPlan(orderedPlan);
-      } else {
-        // If no meal plan exists yet, initialize with empty plan
-        setWeekPlan(initialWeekPlan);
+        return orderedPlan;
       }
+      return initialWeekPlan;
     } catch (err) {
       setError(err.message);
       console.error('Error loading meal plan:', err);
+      return initialWeekPlan;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const saveMealPlan = useCallback(async (unorderedWeekPlan) => {
+  const saveMealPlan = useCallback(async (weekPlan, weekId) => {
     setIsSaving(true);
     setError(null);
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      // Order the plan before saving
-      const orderedWeekPlan = orderMealPlan(unorderedWeekPlan);
-
-      const mealPlanRef = doc(db, 'mealPlans', userId);
+      const orderedWeekPlan = orderMealPlan(weekPlan);
+      const mealPlanRef = doc(db, 'mealPlans', userId, 'weeks', weekId);
+      
       await setDoc(mealPlanRef, {
         weekPlan: orderedWeekPlan,
         updatedAt: new Date().toISOString()
       });
-      
-      setWeekPlan(orderedWeekPlan);
+
+      return orderedWeekPlan;
     } catch (err) {
       setError(err.message);
       console.error('Error saving meal plan:', err);
@@ -89,14 +85,12 @@ export const useMealPlan = () => {
   }, []);
 
   return {
-    weekPlan,
-    setWeekPlan: async (newWeekPlan) => {
-      await saveMealPlan(newWeekPlan);
-    },
     loadUserMealPlan,
+    saveMealPlan,
     isLoading,
     isSaving,
     error,
-    DAYS_OF_WEEK // Export the days array for use in components if needed
+    DAYS_OF_WEEK,
+    initialWeekPlan
   };
 };
