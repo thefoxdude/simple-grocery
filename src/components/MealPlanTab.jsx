@@ -19,7 +19,7 @@ const MealPlanTab = ({ dishes }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedDishType, setselectedDishType] = useState('');
-  const [expandState, setExpandState] = useState('none');
+  const [expandState, setExpandState] = useState('');
 
   useEffect(() => {
     loadUserMealPlan();
@@ -121,34 +121,27 @@ const MealPlanTab = ({ dishes }) => {
       )}
 
       {/* Control buttons */}
-      <div className="flex justify-end">
-        <div className="inline-flex rounded-lg border border-emerald-200 p-1 bg-white shadow-sm">
-          <label className="inline-flex items-center px-3 py-1.5 cursor-pointer">
-            <input
-              type="radio"
-              className="form-radio h-4 w-4 text-emerald-500 border-emerald-300
-                       focus:ring-emerald-400 focus:ring-offset-0"
-              name="expand-state"
-              value="all"
-              checked={expandState === 'all'}
-              onChange={() => handleExpandStateChange('all')}
-            />
-            <span className="ml-2 text-sm text-emerald-700">Expand All</span>
-          </label>
-          <div className="w-px h-full bg-emerald-200"></div>
-          <label className="inline-flex items-center px-3 py-1.5 cursor-pointer">
-            <input
-              type="radio"
-              className="form-radio h-4 w-4 text-emerald-500 border-emerald-300
-                       focus:ring-emerald-400 focus:ring-offset-0"
-              name="expand-state"
-              value="none"
-              checked={expandState === 'none'}
-              onChange={() => handleExpandStateChange('none')}
-            />
-            <span className="ml-2 text-sm text-emerald-700">Collapse All</span>
-          </label>
-        </div>
+      <div className="flex space-x-2">
+        <button
+          onClick={() => handleExpandStateChange('all')}
+          className={`px-4 py-2 rounded-lg transition-colors duration-200
+                    flex items-center gap-2 
+                    ${expandState === 'all' 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+        >
+          Expand All
+        </button>
+        <button
+          onClick={() => handleExpandStateChange('none')}
+          className={`px-4 py-2 rounded-lg transition-colors duration-200
+                    flex items-center gap-2
+                    ${expandState === 'none' 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+        >
+          Collapse All
+        </button>
       </div>
 
       {/* Mobile view */}
