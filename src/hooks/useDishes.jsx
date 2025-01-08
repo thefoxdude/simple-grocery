@@ -2,34 +2,34 @@ import { useState, useCallback } from 'react';
 import { collection, addDoc, deleteDoc, doc, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 
-export const useMeals = () => {
-  const [meals, setMeals] = useState([]);
+export const useDishes = () => {
+  const [dishes, setDishes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [operationError, setOperationError] = useState(null);
 
-  const loadUserMeals = useCallback(async () => {
+  const loadUserDishes = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      const mealsRef = collection(db, 'meals');
-      const userMealsQuery = query(mealsRef, where('userId', '==', userId));
-      const snapshot = await getDocs(userMealsQuery);
+      const dishesRef = collection(db, 'dishes');
+      const userDishesQuery = query(dishesRef, where('userId', '==', userId));
+      const snapshot = await getDocs(userDishesQuery);
       
-      const loadedMeals = snapshot.docs.map(doc => ({
+      const loadedDishes = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       
-      // Sort meals alphabetically by name
-      const sortedMeals = loadedMeals.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort dishes alphabetically by name
+      const sortedDishes = loadedDishes.sort((a, b) => a.name.localeCompare(b.name));
       
-      setMeals(sortedMeals);
+      setDishes(sortedDishes);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -38,24 +38,24 @@ export const useMeals = () => {
     }
   }, []);
 
-  const saveMeal = useCallback(async (mealData) => {
+  const saveDish = useCallback(async (dishData) => {
     setIsSaving(true);
     setOperationError(null);
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      const mealsRef = collection(db, 'meals');
-      const mealWithUser = {
-        ...mealData,
+      const dishesRef = collection(db, 'dishes');
+      const dishWithUser = {
+        ...dishData,
         userId,
         createdAt: new Date().toISOString()
       };
       
-      const docRef = await addDoc(mealsRef, mealWithUser);
-      const newMeal = { id: docRef.id, ...mealWithUser };
-      setMeals(prevMeals => [...prevMeals, newMeal]);
-      return newMeal;
+      const docRef = await addDoc(dishesRef, dishWithUser);
+      const newDish = { id: docRef.id, ...dishWithUser };
+      setDishes(prevDishes => [...prevDishes, newDish]);
+      return newDish;
     } catch (err) {
       setOperationError(err.message);
       throw err;
@@ -64,12 +64,12 @@ export const useMeals = () => {
     }
   }, []);
 
-  const deleteMeal = useCallback(async (mealId) => {
+  const deleteDish = useCallback(async (dishId) => {
     setIsDeleting(true);
     setOperationError(null);
     try {
-      await deleteDoc(doc(db, 'meals', mealId));
-      setMeals(prevMeals => prevMeals.filter(meal => meal.id !== mealId));
+      await deleteDoc(doc(db, 'dishes', dishId));
+      setDishes(prevDishes => prevDishes.filter(dish => dish.id !== dishId));
     } catch (err) {
       setOperationError(err.message);
       throw err;
@@ -79,11 +79,11 @@ export const useMeals = () => {
   }, []);
 
   return {
-    meals,
-    setMeals,
-    loadUserMeals,
-    saveMeal,
-    deleteMeal,
+    dishes,
+    setDishes,
+    loadUserDishes,
+    saveDish,
+    deleteDish,
     isLoading,        // Initial loading state
     isSaving,         // Save operation state
     isDeleting,       // Delete operation state
