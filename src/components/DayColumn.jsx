@@ -8,14 +8,33 @@ const DayColumn = ({
   onToggleExpand, 
   onAddDish, 
   onRemoveDish, 
-  weekPlan 
+  weekPlan,
+  isCurrentDay,
+  isPastDay
 }) => {
+  // Get background color based on day status
+  const getBackgroundColor = () => {
+    if (isPastDay) return 'bg-gray-50';
+    if (isCurrentDay) return 'bg-emerald-50';
+    return 'bg-white';
+  };
+
+  // Get meal item background color
+  const getMealItemBg = () => {
+    if (isCurrentDay) return 'bg-emerald-100';
+    if (!isPastDay) return 'bg-emerald-50';
+    return 'bg-gray-100';
+  };
+
   return (
-    <div className="border border-emerald-100 rounded-lg h-full bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className={`border border-emerald-100 rounded-lg h-full shadow-sm 
+                    hover:shadow-md transition-shadow duration-200 
+                    ${getBackgroundColor()}`}>
       <div className="p-3 xl:p-4">
         <button 
-          className="w-full flex justify-between items-center mb-2 xl:mb-4 py-2
-                     text-emerald-800 hover:text-emerald-600 transition-colors duration-200"
+          className={`w-full flex justify-between items-center mb-2 xl:mb-4 py-2
+                     ${isCurrentDay ? 'text-emerald-700' : 'text-emerald-800'} 
+                     hover:text-emerald-600 transition-colors duration-200`}
           onClick={() => onToggleExpand(day)}
         >
           <span className="font-bold text-sm xl:text-base">{day}</span>
@@ -32,8 +51,9 @@ const DayColumn = ({
                 <div className="mt-1 space-y-1">
                   {weekPlan[day][dishType].map((dish, idx) => (
                     <div key={`${dish.id}-${idx}`} 
-                      className="flex items-center justify-between bg-emerald-50 p-2 rounded-md
-                               text-sm text-emerald-800 group"
+                      className={`flex items-center justify-between p-2 rounded-md
+                               text-sm text-emerald-800 group
+                               ${getMealItemBg()}`}
                     >
                       <span className="truncate mr-2">{dish.name}</span>
                       <button 
@@ -46,11 +66,12 @@ const DayColumn = ({
                     </div>
                   ))}
                   <button 
-                    className="w-full mt-1 px-2 py-1.5 text-sm border border-emerald-200
+                    className={`w-full mt-1 px-2 py-1.5 text-sm border border-emerald-200
                              rounded-md hover:bg-emerald-50 hover:border-emerald-300
                              flex items-center justify-center text-emerald-600
-                             transition-all duration-200"
+                             transition-all duration-200 ${isPastDay ? 'opacity-50' : ''}`}
                     onClick={() => onAddDish(day, dishType)}
+                    disabled={isPastDay}
                   >
                     <Plus className="h-3 w-3 mr-1" /> Add
                   </button>
