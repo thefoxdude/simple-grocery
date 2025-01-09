@@ -3,7 +3,7 @@ import { useDishes } from '../hooks/useDishes';
 import SearchBar from '../forms/SearchBar';
 import DishList from './DishList';
 import AddNewDishModal from '../forms/AddNewDishModal';
-import { Plus, Loader } from 'lucide-react';
+import { Plus, Loader, Salad } from 'lucide-react';
 
 const DishesTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -92,6 +92,10 @@ const DishesTab = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Salad className="h-6 w-6 text-emerald-600" />
+          <h2 className="text-2xl font-bold text-emerald-800">Dishes</h2>
+        </div>
         <button
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
@@ -107,6 +111,7 @@ const DishesTab = () => {
         <SearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          searchString='Search Dishes...'
         />
         <DishList
           filteredDishes={filteredDishes}

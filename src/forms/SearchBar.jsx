@@ -1,12 +1,12 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
-const SearchBar = ({ searchQuery, setSearchQuery }) => {
+const SearchBar = ({ searchQuery, setSearchQuery, searchString }) => {
   return (
     <div className="relative group mb-6">
       <input
         type="text"
-        placeholder="Search dishes..."
+        placeholder={searchString}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="w-full p-3 pl-12 border border-emerald-200 rounded-lg shadow-sm 
