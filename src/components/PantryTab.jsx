@@ -22,7 +22,6 @@ const PantryTab = () => {
     deletePantryItem,
     isLoading,
     isSaving,
-    error,
     operationError 
   } = usePantry();
 
