@@ -207,27 +207,6 @@ const MealPlanTab = ({ dishes }) => {
     <div className="space-y-4">
       {/* Header Controls */}
       <div className="flex justify-between items-center mb-6">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleExpandStateChange('all')}
-            className={`px-4 py-2 rounded-lg transition-colors duration-200
-                      ${expandState === 'all' 
-                        ? 'bg-emerald-600 text-white' 
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
-          >
-            Expand All
-          </button>
-          <button
-            onClick={() => handleExpandStateChange('none')}
-            className={`px-4 py-2 rounded-lg transition-colors duration-200
-                      ${expandState === 'none' 
-                        ? 'bg-emerald-600 text-white' 
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
-          >
-            Collapse All
-          </button>
-        </div>
-
         <div className="flex items-center gap-1">
           <button
             onClick={() => changeWeek(-1)}
@@ -247,6 +226,26 @@ const MealPlanTab = ({ dishes }) => {
             aria-label="Next week"
           >
             <ChevronRight className="h-4 w-4 text-emerald-600" />
+          </button>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleExpandStateChange('all')}
+            className={`px-4 py-2 rounded-lg transition-colors duration-200
+                      ${expandState === 'all' 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+          >
+            Expand All
+          </button>
+          <button
+            onClick={() => handleExpandStateChange('none')}
+            className={`px-4 py-2 rounded-lg transition-colors duration-200
+                      ${expandState === 'none' 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+          >
+            Collapse All
           </button>
         </div>
       </div>
