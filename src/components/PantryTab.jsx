@@ -106,6 +106,7 @@ const PantryTab = () => {
         <SearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          searchString='Search Pantry...'
         />
         
         <div className="space-y-4">

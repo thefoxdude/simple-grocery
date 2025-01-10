@@ -1,5 +1,36 @@
-import React, { useRef, useEffect } from 'react';
-import { X, Plus, Save, Loader } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { X, Plus, Save, Loader, ChevronDown, Check } from 'lucide-react';
+
+const MEASUREMENT_UNITS = {
+  Volume: [
+    'teaspoon (tsp)',
+    'tablespoon (tbsp)',
+    'fluid ounce (fl oz)',
+    'cup',
+    'pint (pt)',
+    'quart (qt)',
+    'gallon (gal)',
+    'milliliter (ml)',
+    'liter (l)'
+  ],
+  Weight: [
+    'ounce (oz)',
+    'pound (lb)',
+    'gram (g)',
+    'kilogram (kg)'
+  ],
+  Count: [
+    'piece',
+    'dozen',
+    'pack',
+    'can',
+    'bottle',
+    'box'
+  ]
+};
+
+// Flatten units for search
+const ALL_UNITS = Object.values(MEASUREMENT_UNITS).flat();
 
 const AddPantryItemModal = ({ 
   isOpen, 
@@ -12,6 +43,13 @@ const AddPantryItemModal = ({
   isEditing = false
 }) => {
   const modalRef = useRef(null);
+  const [isUnitsOpen, setIsUnitsOpen] = useState(false);
+  const [unitSearch, setUnitSearch] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const filteredUnits = ALL_UNITS.filter(unit =>
+    unit.toLowerCase().includes(unitSearch.toLowerCase())
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,12 +60,50 @@ const AddPantryItemModal = ({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Set unitSearch when editing
+      if (isEditing && item.unit) {
+        setUnitSearch(item.unit);
+      }
+    } else {
+      resetUnitSearch();
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isEditing, item.unit]);
+
+  const resetUnitSearch = () => {
+    setUnitSearch('');
+    setIsUnitsOpen(false);
+    setActiveIndex(0);
+  };
+
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex(prev => (prev + 1) % filteredUnits.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex(prev => (prev - 1 + filteredUnits.length) % filteredUnits.length);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filteredUnits[activeIndex]) {
+          setItem(prev => ({ ...prev, unit: filteredUnits[activeIndex] }));
+          setIsUnitsOpen(false);
+          setUnitSearch(filteredUnits[activeIndex]);
+        }
+        break;
+      case 'Escape':
+        resetUnitSearch();
+        break;
+      default:
+        break;
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -42,7 +118,10 @@ const AddPantryItemModal = ({
             {isEditing ? 'Edit Pantry Item' : 'Add Pantry Item'}
           </h3>
           <button
-            onClick={onClose}
+            onClick={() => {
+            resetUnitSearch();
+            onClose();
+          }}
             className="p-2 hover:bg-emerald-50 rounded-full transition-colors duration-200"
           >
             <X className="h-5 w-5 text-emerald-500" />
@@ -70,14 +149,64 @@ const AddPantryItemModal = ({
                           focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
               />
               
-              <input
-                type="text"
-                placeholder="Unit"
-                value={item.unit}
-                onChange={(e) => setItem(prev => ({ ...prev, unit: e.target.value }))}
-                className="w-full p-2 border border-emerald-200 rounded-md 
+              <div className="relative">
+                <div
+                  onClick={() => setIsUnitsOpen(true)}
+                  className="w-full p-2 border border-emerald-200 rounded-md 
+                          flex items-center justify-between cursor-pointer
                           focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
-              />
+                >
+                  <input
+                    type="text"
+                    placeholder="Unit"
+                    value={unitSearch}
+                    onChange={(e) => {
+                      setUnitSearch(e.target.value);
+                      setIsUnitsOpen(true);
+                      setActiveIndex(0);
+                    }}
+                    onFocus={() => setIsUnitsOpen(true)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full focus:outline-none"
+                  />
+                  <ChevronDown className="h-4 w-4 text-emerald-500" />
+                </div>
+
+                {isUnitsOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-emerald-200 
+                                rounded-md shadow-lg max-h-60 overflow-auto">
+                    {Object.entries(MEASUREMENT_UNITS).map(([category, units]) => (
+                      <div key={category}>
+                        <div className="px-3 py-1 text-sm font-semibold text-emerald-800 bg-emerald-50">
+                          {category}
+                        </div>
+                        {units
+                          .filter(unit => unit.toLowerCase().includes(unitSearch.toLowerCase()))
+                          .map((unit, index) => (
+                            <div
+                              key={unit}
+                              onClick={() => {
+                                setItem(prev => ({ ...prev, unit }));
+                                setUnitSearch(unit);
+                                setIsUnitsOpen(false);
+                                setActiveIndex(0);
+                              }}
+                              className={`px-3 py-2 cursor-pointer flex items-center justify-between
+                                        ${filteredUnits[activeIndex] === unit 
+                                          ? 'bg-emerald-100' 
+                                          : 'hover:bg-emerald-50'}`}
+                            >
+                              {unit}
+                              {item.unit === unit && (
+                                <Check className="h-4 w-4 text-emerald-500" />
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
