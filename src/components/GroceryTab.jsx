@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
-import { Calendar, ShoppingCart, Loader, Check, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart } from 'lucide-react';
+import { compareAmounts, convertToBaseUnit } from '../helpers/unitConversions';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { usePantry } from '../hooks/usePantry';
+import { DateRangeSelector } from '../forms/DateRangeSelector';
+import { GenerateListButton } from './GenerateListButton';
+import { GroceryLists } from './GroceryLists';
 
 const DAYS_OF_WEEK = [
   'Sunday',
@@ -14,11 +19,20 @@ const DAYS_OF_WEEK = [
 
 const GroceryTab = ({ dishes = [] }) => {
   const { loadUserMealPlan } = useMealPlan();
+  const { pantryItems, loadPantryItems } = usePantry();
+  
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [groceryList, setGroceryList] = useState([]);
-  const [checkedItems, setCheckedItems] = useState(new Set());
+  const [neededItems, setNeededItems] = useState([]);
+  const [availableItems, setAvailableItems] = useState([]);
+  const [checkedNeededItems, setCheckedNeededItems] = useState(new Set());
+  const [checkedPantryItems, setCheckedPantryItems] = useState(new Set());
+
+  // Load pantry items when component mounts
+  useEffect(() => {
+    loadPantryItems();
+  }, [loadPantryItems]);
 
   // Helper function to normalize a date to midnight UTC
   const normalizeDate = (date) => {
@@ -35,9 +49,26 @@ const GroceryTab = ({ dishes = [] }) => {
     return normalized.toISOString().split('T')[0];
   };
 
+  // Helper function to check if an ingredient matches a pantry item
+  const ingredientMatchesPantryItem = (ingredient, pantryItem) => {
+    // First check if names match (case-insensitive)
+    if (ingredient.name.toLowerCase() !== pantryItem.name.toLowerCase()) {
+      return false;
+    }
+
+    // Check if we have enough quantity
+    return compareAmounts(
+      pantryItem.amount,
+      pantryItem.unit,
+      ingredient.amount,
+      ingredient.unit
+    );
+  };
+
   const generateGroceryList = async () => {
     setIsGenerating(true);
-    setGroceryList([]);
+    setNeededItems([]);
+    setAvailableItems([]);
     
     try {
       const start = normalizeDate(startDate);
@@ -89,16 +120,52 @@ const GroceryTab = ({ dishes = [] }) => {
         currentDate = nextDate;
       }
       
-      // Convert map to sorted array
-      const sortedList = Array.from(ingredientMap.values())
+      // Convert map to array and sort ingredients
+      const allIngredients = Array.from(ingredientMap.values())
         .sort((a, b) => a.name.localeCompare(b.name))
         .map(item => ({
           ...item,
           amount: Math.round(item.amount * 100) / 100 // Round to 2 decimal places
         }));
-      
-      setGroceryList(sortedList);
-      setCheckedItems(new Set());
+
+      // Separate ingredients into "needed" and "available" based on pantry
+      const needed = [];
+      const available = [];
+
+      allIngredients.forEach(ingredient => {
+        const matchingPantryItem = pantryItems.find(item => 
+          ingredientMatchesPantryItem(ingredient, item)
+        );
+
+        if (matchingPantryItem) {
+          const hasEnough = compareAmounts(
+            matchingPantryItem.amount,
+            matchingPantryItem.unit,
+            ingredient.amount,
+            ingredient.unit
+          );
+
+          if (hasEnough) {
+            available.push(ingredient);
+          } else {
+            const baseNeeded = convertToBaseUnit(ingredient.amount, ingredient.unit);
+            const baseHave = convertToBaseUnit(matchingPantryItem.amount, matchingPantryItem.unit);
+            const neededAmount = Math.max(0, baseNeeded - baseHave);
+            needed.push({
+              ...ingredient,
+              amount: Math.round(neededAmount * 100) / 100
+            });
+          }
+        } else {
+          needed.push(ingredient);
+        }
+      });
+
+      setNeededItems(needed);
+      setAvailableItems(available);
+      setCheckedNeededItems(new Set());
+      // Initialize "Already Have" items as checked
+      setCheckedPantryItems(new Set(available.map((_, index) => index)));
     } catch (error) {
       console.error('Error generating grocery list:', error);
     } finally {
@@ -106,8 +173,20 @@ const GroceryTab = ({ dishes = [] }) => {
     }
   };
 
-  const toggleItem = (index) => {
-    setCheckedItems(prev => {
+  const toggleNeededItem = (index) => {
+    setCheckedNeededItems(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const togglePantryItem = (index) => {
+    setCheckedPantryItems(prev => {
       const next = new Set(prev);
       if (next.has(index)) {
         next.delete(index);
@@ -119,112 +198,43 @@ const GroceryTab = ({ dishes = [] }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-2">
         <ShoppingCart className="h-6 w-6 text-emerald-600" />
         <h2 className="text-2xl font-bold text-emerald-800">Grocery List</h2>
       </div>
 
       <div className="bg-emerald-50 rounded-lg p-6 space-y-6">
-        {/* Date Range Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-emerald-700">
-              Start Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setGroceryList([]);
-                }}
-                className="w-full p-2 pr-8 border border-emerald-200 rounded-md
-                        focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
-              />
-              <Calendar className="h-4 w-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-emerald-500" />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-emerald-700">
-              End Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setGroceryList([]);
-                }}
-                className="w-full p-2 pr-8 border border-emerald-200 rounded-md
-                        focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
-              />
-              <Calendar className="h-4 w-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-emerald-500" />
-            </div>
-          </div>
-        </div>
+        <DateRangeSelector
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={(date) => {
+            setStartDate(date);
+            setNeededItems([]);
+            setAvailableItems([]);
+          }}
+          onEndDateChange={(date) => {
+            setEndDate(date);
+            setNeededItems([]);
+            setAvailableItems([]);
+          }}
+        />
 
-        {/* Generate Button */}
-        <button
+        <GenerateListButton
           onClick={generateGroceryList}
-          disabled={!startDate || !endDate || isGenerating}
-          className="w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-600
-                    text-white rounded-lg transition-colors duration-200
-                    flex items-center justify-center gap-2
-                    disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isGenerating ? (
-            <>
-              <Loader className="h-5 w-5 animate-spin" />
-              <span>Generating List...</span>
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-5 w-5" />
-              <span>Generate Grocery List</span>
-            </>
-          )}
-        </button>
+          disabled={!startDate || !endDate}
+          isGenerating={isGenerating}
+        />
 
-        {/* Grocery List */}
-        {groceryList.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg text-emerald-800">
-              Items Needed ({groceryList.length})
-            </h3>
-            <div className="space-y-2">
-              {groceryList.map((item, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center p-3 rounded-lg bg-white
-                            transition-colors duration-200
-                            ${checkedItems.has(index) ? 'bg-emerald-50' : ''}`}
-                >
-                  <button
-                    onClick={() => toggleItem(index)}
-                    className={`w-5 h-5 rounded border mr-3 flex items-center justify-center
-                              transition-colors duration-200
-                              ${checkedItems.has(index)
-                                ? 'bg-emerald-500 border-emerald-500'
-                                : 'border-emerald-300 hover:border-emerald-400'}`}
-                  >
-                    {checkedItems.has(index) && (
-                      <Check className="h-3 w-3 text-white" />
-                    )}
-                  </button>
-                  <span className={`flex-1 ${checkedItems.has(index) ? 'line-through text-emerald-600' : 'text-emerald-800'}`}>
-                    {item.name}
-                  </span>
-                  <span className="text-emerald-600 font-medium">
-                    {item.amount} {item.unit}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+        {(neededItems.length > 0 || availableItems.length > 0) && (
+          <GroceryLists
+            neededItems={neededItems}
+            pantryItems={availableItems}
+            checkedNeededItems={checkedNeededItems}
+            checkedPantryItems={checkedPantryItems}
+            onToggleNeededItem={toggleNeededItem}
+            onTogglePantryItem={togglePantryItem}
+          />
         )}
       </div>
     </div>
