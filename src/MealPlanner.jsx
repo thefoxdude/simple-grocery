@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { ShoppingCart, Calendar, Loader, Salad, Warehouse } from 'lucide-react'
 import MealPlanTab from './components/MealPlanTab'
-import GroceryListTab from './components/GroceryListTab'
 import DishesTab from './components/DishesTab'
 import { useDishes } from './hooks/useDishes'
-import { useMealPlan } from './hooks/useMealPlan'
 import { TabButton } from './components/TabButton'
 import PantryTab from './components/PantryTab'
+import GroceryTab from './components/GroceryTab'
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan")
   const { dishes, loadUserDishes, isLoading: dishesLoading, error: dishesError } = useDishes()
-  const { weekPlan } = useMealPlan()
 
   useEffect(() => {
     loadUserDishes();
@@ -43,7 +41,7 @@ const MealPlanner = () => {
       <div className="w-full">
         <div className="grid grid-cols-4 border-b mb-6">
           <TabButton icon={Calendar} label='Meal Plan' isActive={activeTab === 'meal-plan'} onClick={() => setActiveTab('meal-plan')} />
-          <TabButton icon={ShoppingCart} label='Grocery List' isActive={activeTab === 'grocery-list'} onClick={() => setActiveTab('grocery-list')} />
+          <TabButton icon={ShoppingCart} label='Grocery List' isActive={activeTab === 'grocery'} onClick={() => setActiveTab('grocery')} />
           <TabButton 
             icon={Warehouse} 
             label='Pantry' 
@@ -56,11 +54,8 @@ const MealPlanner = () => {
         {activeTab === 'meal-plan' && (
           <MealPlanTab dishes={dishes} />
         )}
-        {activeTab === 'grocery-list' && (
-          <GroceryListTab 
-            dishes={dishes} 
-            weekPlan={weekPlan} 
-          />
+        {activeTab === 'grocery' && (
+          <GroceryTab dishes={dishes} />
         )}
         {activeTab === 'pantry' && (
           <PantryTab />
