@@ -5,7 +5,7 @@ import './index.css'
 function App() {
   return (
     <AuthProvider>
-      <MealPlanner />
+      <MealPlanner/>
     </AuthProvider>
   );
 }

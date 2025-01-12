@@ -11,7 +11,7 @@ const DishList = ({
 }) => {
   if (filteredDishes.length === 0 && searchQuery) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-emerald-600 dark:text-emerald-400">
         No dishes found matching "{searchQuery}"
       </div>
     );

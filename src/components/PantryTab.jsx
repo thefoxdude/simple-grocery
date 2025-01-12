@@ -79,7 +79,7 @@ const PantryTab = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-emerald-500" />
+        <Loader className="h-8 w-8 animate-spin text-emerald-500 dark:text-emerald-400" />
       </div>
     );
   }
@@ -88,12 +88,15 @@ const PantryTab = () => {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Warehouse className="h-6 w-6 text-emerald-600" />
-          <h2 className="text-2xl font-bold text-emerald-800">Pantry</h2>
+          <Warehouse className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
+            Pantry
+          </h2>
         </div>
         <button
           onClick={handleAddClick}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
+                    dark:bg-emerald-600 dark:hover:bg-emerald-700
                     text-white rounded-lg transition-colors duration-200
                     flex items-center gap-2"
         >
@@ -102,7 +105,7 @@ const PantryTab = () => {
         </button>
       </div>
 
-      <div className="bg-emerald-50 rounded-lg p-6 space-y-6">
+      <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6">
         <SearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -114,25 +117,31 @@ const PantryTab = () => {
             <div 
               key={item.id}
               onClick={() => handleEditClick(item)}
-              className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm
-                       hover:shadow-md transition-all duration-200 cursor-pointer group"
+              className="flex justify-between items-center bg-white dark:bg-gray-900 
+                        p-4 rounded-lg shadow-sm hover:shadow-md 
+                        transition-all duration-200 cursor-pointer group
+                        border border-emerald-100 dark:border-gray-700"
             >
               <div>
-                <h3 className="font-medium text-emerald-800">{item.name}</h3>
-                <p className="text-emerald-600 text-sm">
+                <h3 className="font-medium text-emerald-800 dark:text-emerald-200">
+                  {item.name}
+                </h3>
+                <p className="text-emerald-600 dark:text-emerald-400 text-sm">
                   {item.amount} {item.unit}
                 </p>
               </div>
               <button
                 onClick={(e) => handleDeleteItem(item.id, e)}
                 disabled={deletingItemId === item.id}
-                className="p-2 text-red-400 hover:bg-red-50 rounded-full 
-                          transition-colors duration-200
+                className="p-2 text-red-400 dark:text-red-500 
+                          hover:bg-red-50 dark:hover:bg-red-900/50 
+                          rounded-full transition-colors duration-200
+                          opacity-0 group-hover:opacity-100
                           disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={deletingItemId === item.id ? "Deleting item..." : "Delete item"}
               >
                 {deletingItemId === item.id ? (
-                  <Loader className="h-4 w-4 animate-spin text-red-500" />
+                  <Loader className="h-4 w-4 animate-spin text-red-500 dark:text-red-400" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
@@ -141,7 +150,7 @@ const PantryTab = () => {
           ))}
 
           {filteredItems.length === 0 && searchQuery && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-emerald-600 dark:text-emerald-400">
               No items found matching "{searchQuery}"
             </div>
           )}
