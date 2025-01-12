@@ -7,6 +7,7 @@ import { TabButton } from './components/TabButton';
 import PantryTab from './components/PantryTab';
 import GroceryTab from './components/GroceryTab';
 import SettingsModal from './forms/SettingsModal';
+import FeedbackModal from './forms/FeedbackModal';
 import { useAuth } from './hooks/useAuth';
 import { useSettings } from './hooks/useSettings';
 import Footer from './components/Footer';
@@ -14,6 +15,7 @@ import Footer from './components/Footer';
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
   const [showSettings, setShowSettings] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const { settings, updateSettings, isLoading: settingsLoading } = useSettings();
   
   const { dishes, loadUserDishes, isLoading: dishesLoading, error: dishesError } = useDishes();
@@ -101,10 +103,16 @@ const MealPlanner = () => {
           settings={settings}
           onSettingChange={handleSettingChange}
         />
+
+        <FeedbackModal
+          isOpen={showFeedback}
+          onClose={() => setShowFeedback(false)}
+        />
       </div>
 
       <Footer 
         onOpenSettings={() => setShowSettings(true)}
+        onOpenFeedback={() => setShowFeedback(true)}
         onLogout={logout}
       />
     </div>
