@@ -27,6 +27,16 @@ const COUNT_UNITS = new Set([
     'box'
 ]);
 
+// Organize units by category for UI display
+export const MEASUREMENT_UNITS = {
+    Volume: Object.keys(VOLUME_CONVERSIONS),
+    Weight: Object.keys(WEIGHT_CONVERSIONS),
+    Count: Array.from(COUNT_UNITS)
+};
+
+// Helper to get all units as a flat array
+export const ALL_UNITS = Object.values(MEASUREMENT_UNITS).flat();
+
 export const getUnitType = (unit) => {
     if (VOLUME_CONVERSIONS[unit]) return 'volume';
     if (WEIGHT_CONVERSIONS[unit]) return 'weight';
@@ -42,16 +52,16 @@ export const convertToBaseUnit = (amount, unit) => {
     if (isNaN(numericAmount)) return null;
 
     switch (unitType) {
-    case 'volume':
-        return numericAmount * VOLUME_CONVERSIONS[unit];
-    case 'weight':
-        return numericAmount * WEIGHT_CONVERSIONS[unit];
-    case 'count':
-        // Special handling for dozen
-        if (unit === 'dozen') return numericAmount * 12;
-        return numericAmount;
-    default:
-        return null;
+        case 'volume':
+            return numericAmount * VOLUME_CONVERSIONS[unit];
+        case 'weight':
+            return numericAmount * WEIGHT_CONVERSIONS[unit];
+        case 'count':
+            // Special handling for dozen
+            if (unit === 'dozen') return numericAmount * 12;
+            return numericAmount;
+        default:
+            return null;
     }
 };
 

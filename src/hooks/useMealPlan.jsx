@@ -15,7 +15,7 @@ const DAYS_OF_WEEK = [
 
 const createEmptyMealPlan = () => {
   return DAYS_OF_WEEK.reduce((plan, day) => {
-    plan[day] = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+    plan[day] = { breakfast: [], lunch: [], dinner: [], other: [] };
     return plan;
   }, {});
 };
@@ -30,7 +30,7 @@ export const useMealPlan = () => {
   // Helper function to ensure meal plan follows day order
   const orderMealPlan = (unorderedPlan) => {
     return DAYS_OF_WEEK.reduce((orderedPlan, day) => {
-      orderedPlan[day] = unorderedPlan[day] || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      orderedPlan[day] = unorderedPlan[day] || { breakfast: [], lunch: [], dinner: [], other: [] };
       return orderedPlan;
     }, {});
   };

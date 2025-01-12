@@ -59,7 +59,6 @@ const DishesTab = () => {
         const savedDish = await saveDish(dishData);
         console.log('Dish saved successfully:', savedDish);
         
-        // Clear the form and close modal on successful save
         setNewDish({ 
           name: '', 
           recipe: '',
@@ -84,7 +83,7 @@ const DishesTab = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader className="h-8 w-8 animate-spin text-emerald-500" />
+        <Loader className="h-8 w-8 animate-spin text-emerald-500 dark:text-emerald-400" />
       </div>
     );
   }
@@ -93,21 +92,22 @@ const DishesTab = () => {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Salad className="h-6 w-6 text-emerald-600" />
-          <h2 className="text-2xl font-bold text-emerald-800">Dishes</h2>
+          <Salad className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">Dishes</h2>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
                     text-white rounded-lg transition-colors duration-200
-                    flex items-center gap-2"
+                    flex items-center gap-2
+                    dark:bg-emerald-600 dark:hover:bg-emerald-700"
         >
           <Plus className="h-5 w-5" />
           Add New Dish
         </button>
       </div>
 
-      <div className="bg-emerald-50 rounded-lg p-6 space-y-6">
+      <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6">
         <SearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

@@ -87,7 +87,7 @@ const GroceryTab = ({ dishes = [] }) => {
           
           if (weekPlan && weekPlan[dayName]) {
             // Process each meal type
-            ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+            ['breakfast', 'lunch', 'dinner', 'other'].forEach(mealType => {
               const mealsList = weekPlan[dayName][mealType] || [];
               
               mealsList.forEach(meal => {
@@ -200,11 +200,14 @@ const GroceryTab = ({ dishes = [] }) => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-2">
-        <ShoppingCart className="h-6 w-6 text-emerald-600" />
-        <h2 className="text-2xl font-bold text-emerald-800">Grocery List</h2>
+        <ShoppingCart className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+        <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
+          Grocery List
+        </h2>
       </div>
-
-      <div className="bg-emerald-50 rounded-lg p-6 space-y-6">
+  
+      <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6
+                      border border-emerald-100 dark:border-gray-700">
         <DateRangeSelector
           startDate={startDate}
           endDate={endDate}
@@ -219,13 +222,13 @@ const GroceryTab = ({ dishes = [] }) => {
             setAvailableItems([]);
           }}
         />
-
+  
         <GenerateListButton
           onClick={generateGroceryList}
           disabled={!startDate || !endDate}
           isGenerating={isGenerating}
         />
-
+  
         {(neededItems.length > 0 || availableItems.length > 0) && (
           <GroceryLists
             neededItems={neededItems}
