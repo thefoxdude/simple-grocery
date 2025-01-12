@@ -7,7 +7,10 @@ export const GroceryLists = ({
   checkedNeededItems, 
   checkedPantryItems,
   onToggleNeededItem,
-  onTogglePantryItem
+  onTogglePantryItem,
+  onAddManualItem,
+  onRemoveNeededItem,
+  onRemovePantryItem
 }) => {
   return (
     <>
@@ -18,16 +21,17 @@ export const GroceryLists = ({
           items={neededItems}
           checkedItems={checkedNeededItems}
           onToggleItem={onToggleNeededItem}
-          defaultOpen={true}
-          isMobile={true}
+          onAddManualItem={onAddManualItem}
+          onRemoveItem={onRemoveNeededItem}
+          isNeededSection={true}
         />
         <GroceryListSection
           title="Already Have"
           items={pantryItems}
           checkedItems={checkedPantryItems}
           onToggleItem={onTogglePantryItem}
-          defaultOpen={false}
-          isMobile={true}
+          onRemoveItem={onRemovePantryItem}
+          isNeededSection={false}
         />
       </div>
   
@@ -40,6 +44,9 @@ export const GroceryLists = ({
             items={neededItems}
             checkedItems={checkedNeededItems}
             onToggleItem={onToggleNeededItem}
+            onAddManualItem={onAddManualItem}
+            onRemoveItem={onRemoveNeededItem}
+            isNeededSection={true}
           />
         </div>
         <div className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm 
@@ -49,6 +56,8 @@ export const GroceryLists = ({
             items={pantryItems}
             checkedItems={checkedPantryItems}
             onToggleItem={onTogglePantryItem}
+            onRemoveItem={onRemovePantryItem}
+            isNeededSection={false}
           />
         </div>
       </div>
