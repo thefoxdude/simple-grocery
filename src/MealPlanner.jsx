@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Calendar, Loader, Salad, Warehouse, Settings, LogOut } from 'lucide-react';
+import { ShoppingCart, Calendar, Loader, Salad, Warehouse } from 'lucide-react';
 import MealPlanTab from './components/MealPlanTab';
 import DishesTab from './components/DishesTab';
 import { useDishes } from './hooks/useDishes';
@@ -8,7 +8,8 @@ import PantryTab from './components/PantryTab';
 import GroceryTab from './components/GroceryTab';
 import SettingsModal from './forms/SettingsModal';
 import { useAuth } from './hooks/useAuth';
-import { useSettings } from './hooks/useSettings'
+import { useSettings } from './hooks/useSettings';
+import Footer from './components/Footer';
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
@@ -54,26 +55,13 @@ const MealPlanner = () => {
   }
 
   return (
-    <div className="dark:bg-gray-900">
-      <div className="container mx-auto p-6 min-h-screen">
+    <div className="dark:bg-gray-900 min-h-screen pb-20">
+      <div className="container mx-auto p-6">
         <div className="flex flex-col gap-6">
-          <div className="relative flex justify-center items-center">
-            <h1 className="text-3xl font-bold text-emerald-800 dark:text-emerald-400">Meal Planner</h1>
-            <div className="absolute right-0 flex items-center gap-4">
-              <button
-                onClick={() => setShowSettings(true)}
-                className="p-2 hover:bg-emerald-50 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
-                aria-label="Settings"
-              >
-                <Settings className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </button>
-              <button
-                onClick={logout}
-                className="p-2 hover:bg-red-800 rounded-lg transition-colors duration-200"
-              >
-                <LogOut className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </button>
-            </div>
+          <div className="flex justify-center items-center">
+            <h1 className="text-3xl font-bold text-emerald-800 dark:text-emerald-400">
+              Meal Planner
+            </h1>
           </div>
           
           <div className="w-full">
@@ -114,6 +102,11 @@ const MealPlanner = () => {
           onSettingChange={handleSettingChange}
         />
       </div>
+
+      <Footer 
+        onOpenSettings={() => setShowSettings(true)}
+        onLogout={logout}
+      />
     </div>
   );
 };
