@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Trash2 } from 'lucide-react';
 import { compareAmounts, convertToBaseUnit } from '../helpers/unitConversions';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePantry } from '../hooks/usePantry';
+import { useGroceryList } from '../hooks/useGroceryList';
 import { DateRangeSelector } from '../forms/DateRangeSelector';
 import { GenerateListButton } from './GenerateListButton';
 import { GroceryLists } from './GroceryLists';
 
 const DAYS_OF_WEEK = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
 const GroceryTab = ({ dishes = [] }) => {
   const { loadUserMealPlan } = useMealPlan();
   const { pantryItems, loadPantryItems } = usePantry();
+  const { 
+    loadGroceryList, 
+    saveGroceryList, 
+    clearGroceryList,
+    addManualItem,
+    removeManualItem 
+  } = useGroceryList();
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -29,19 +31,29 @@ const GroceryTab = ({ dishes = [] }) => {
   const [checkedNeededItems, setCheckedNeededItems] = useState(new Set());
   const [checkedPantryItems, setCheckedPantryItems] = useState(new Set());
 
-  // Load pantry items when component mounts
+  // Load initial data when component mounts
   useEffect(() => {
-    loadPantryItems();
-  }, [loadPantryItems]);
+    const loadInitialData = async () => {
+      await loadPantryItems();
+      const savedList = await loadGroceryList();
+      if (savedList) {
+        setStartDate(savedList.startDate || '');
+        setEndDate(savedList.endDate || '');
+        setNeededItems(savedList.neededItems || []);
+        setAvailableItems(savedList.availableItems || []);
+        setCheckedNeededItems(new Set(savedList.checkedNeededItems || []));
+        setCheckedPantryItems(new Set(savedList.checkedPantryItems || []));
+      }
+    };
+    loadInitialData();
+  }, [loadPantryItems, loadGroceryList]);
 
-  // Helper function to normalize a date to midnight UTC
   const normalizeDate = (date) => {
     const normalized = new Date(date);
     normalized.setUTCHours(0, 0, 0, 0);
     return normalized;
   };
 
-  // Helper function to get week ID from a date
   const getWeekId = (date) => {
     const normalized = normalizeDate(date);
     const day = normalized.getUTCDay();
@@ -49,33 +61,75 @@ const GroceryTab = ({ dishes = [] }) => {
     return normalized.toISOString().split('T')[0];
   };
 
-  // Helper function to check if an ingredient matches a pantry item
-  const ingredientMatchesPantryItem = (ingredient, pantryItem) => {
-    // First check if names match (case-insensitive)
-    if (ingredient.name.toLowerCase() !== pantryItem.name.toLowerCase()) {
-      return false;
-    }
+  const handleClearList = async () => {
+    await clearGroceryList();
+    setNeededItems([]);
+    setAvailableItems([]);
+    setCheckedNeededItems(new Set());
+    setCheckedPantryItems(new Set());
+    setStartDate('');
+    setEndDate('');
+  };
 
-    // Check if we have enough quantity
-    return compareAmounts(
-      pantryItem.amount,
-      pantryItem.unit,
-      ingredient.amount,
-      ingredient.unit
-    );
+  const handleAddManualItem = async (itemData) => {
+    try {
+      const newItem = await addManualItem(itemData);
+      const updatedNeededItems = [...neededItems, newItem];
+      setNeededItems(updatedNeededItems);
+      
+      await saveGroceryList({
+        startDate,
+        endDate,
+        neededItems: updatedNeededItems,
+        availableItems,
+        checkedNeededItems: Array.from(checkedNeededItems),
+        checkedPantryItems: Array.from(checkedPantryItems)
+      });
+    } catch (error) {
+      console.error('Error adding manual item:', error);
+    }
+  };
+
+  const handleRemoveNeededItem = async (index) => {
+    try {
+      const itemToRemove = neededItems[index];
+      const updatedItems = neededItems.filter((_, i) => i !== index);
+      setNeededItems(updatedItems);
+
+      // If it's a manual item, remove it from the database
+      if (itemToRemove.isManual) {
+        await removeManualItem(itemToRemove.id);
+      }
+
+      // Update grocery list
+      const newCheckedItems = new Set(
+        Array.from(checkedNeededItems)
+          .filter(i => i !== index)
+          .map(i => i > index ? i - 1 : i)
+      );
+      setCheckedNeededItems(newCheckedItems);
+
+      await saveGroceryList({
+        startDate,
+        endDate,
+        neededItems: updatedItems,
+        availableItems,
+        checkedNeededItems: Array.from(newCheckedItems),
+        checkedPantryItems: Array.from(checkedPantryItems)
+      });
+    } catch (error) {
+      console.error('Error removing needed item:', error);
+    }
   };
 
   const generateGroceryList = async () => {
     setIsGenerating(true);
-    setNeededItems([]);
-    setAvailableItems([]);
     
     try {
       const start = normalizeDate(startDate);
       const end = normalizeDate(endDate);
       const ingredientMap = new Map();
       
-      // Iterate through each date in the range
       let currentDate = new Date(start);
       while (currentDate <= end) {
         currentDate = normalizeDate(currentDate);
@@ -86,7 +140,6 @@ const GroceryTab = ({ dishes = [] }) => {
           const weekPlan = await loadUserMealPlan(weekId);
           
           if (weekPlan && weekPlan[dayName]) {
-            // Process each meal type
             ['breakfast', 'lunch', 'dinner', 'other'].forEach(mealType => {
               const mealsList = weekPlan[dayName][mealType] || [];
               
@@ -120,21 +173,19 @@ const GroceryTab = ({ dishes = [] }) => {
         currentDate = nextDate;
       }
       
-      // Convert map to array and sort ingredients
       const allIngredients = Array.from(ingredientMap.values())
         .sort((a, b) => a.name.localeCompare(b.name))
         .map(item => ({
           ...item,
-          amount: Math.round(item.amount * 100) / 100 // Round to 2 decimal places
+          amount: Math.round(item.amount * 100) / 100
         }));
 
-      // Separate ingredients into "needed" and "available" based on pantry
       const needed = [];
       const available = [];
 
       allIngredients.forEach(ingredient => {
         const matchingPantryItem = pantryItems.find(item => 
-          ingredientMatchesPantryItem(ingredient, item)
+          ingredient.name.toLowerCase() === item.name.toLowerCase()
         );
 
         if (matchingPantryItem) {
@@ -161,10 +212,26 @@ const GroceryTab = ({ dishes = [] }) => {
         }
       });
 
-      setNeededItems(needed);
+      // Get current manual items
+      const savedList = await loadGroceryList();
+      const manualItems = savedList?.neededItems?.filter(item => item.isManual) || [];
+
+      // Combine generated items with manual items
+      const allNeededItems = [...needed, ...manualItems];
+
+      await saveGroceryList({
+        startDate,
+        endDate,
+        neededItems: allNeededItems,
+        availableItems: available,
+        checkedNeededItems: [],
+        checkedPantryItems: Array.from(new Set(available.map((_, index) => index))),
+        generatedAt: new Date().toISOString()
+      });
+
+      setNeededItems(allNeededItems);
       setAvailableItems(available);
       setCheckedNeededItems(new Set());
-      // Initialize "Already Have" items as checked
       setCheckedPantryItems(new Set(available.map((_, index) => index)));
     } catch (error) {
       console.error('Error generating grocery list:', error);
@@ -173,37 +240,66 @@ const GroceryTab = ({ dishes = [] }) => {
     }
   };
 
-  const toggleNeededItem = (index) => {
-    setCheckedNeededItems(prev => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
+  const toggleNeededItem = async (index) => {
+    const newCheckedItems = new Set(checkedNeededItems);
+    if (newCheckedItems.has(index)) {
+      newCheckedItems.delete(index);
+    } else {
+      newCheckedItems.add(index);
+    }
+    setCheckedNeededItems(newCheckedItems);
+
+    await saveGroceryList({
+      startDate,
+      endDate,
+      neededItems,
+      availableItems,
+      checkedNeededItems: Array.from(newCheckedItems),
+      checkedPantryItems: Array.from(checkedPantryItems)
     });
   };
 
-  const togglePantryItem = (index) => {
-    setCheckedPantryItems(prev => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
+  const togglePantryItem = async (index) => {
+    const newCheckedItems = new Set(checkedPantryItems);
+    if (newCheckedItems.has(index)) {
+      newCheckedItems.delete(index);
+    } else {
+      newCheckedItems.add(index);
+    }
+    setCheckedPantryItems(newCheckedItems);
+
+    await saveGroceryList({
+      startDate,
+      endDate,
+      neededItems,
+      availableItems,
+      checkedNeededItems: Array.from(checkedNeededItems),
+      checkedPantryItems: Array.from(newCheckedItems)
     });
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-2">
-        <ShoppingCart className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-        <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
-          Grocery List
-        </h2>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <ShoppingCart className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
+            Grocery List
+          </h2>
+        </div>
+        
+        {(neededItems.length > 0 || availableItems.length > 0) && (
+          <button
+            onClick={handleClearList}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 
+                      dark:bg-red-600 dark:hover:bg-red-700
+                      text-white rounded-lg transition-colors duration-200
+                      flex items-center gap-2"
+          >
+            <Trash2 className="h-5 w-5" />
+            Clear List
+          </button>
+        )}
       </div>
   
       <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6
@@ -211,16 +307,8 @@ const GroceryTab = ({ dishes = [] }) => {
         <DateRangeSelector
           startDate={startDate}
           endDate={endDate}
-          onStartDateChange={(date) => {
-            setStartDate(date);
-            setNeededItems([]);
-            setAvailableItems([]);
-          }}
-          onEndDateChange={(date) => {
-            setEndDate(date);
-            setNeededItems([]);
-            setAvailableItems([]);
-          }}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
         />
   
         <GenerateListButton
@@ -229,16 +317,16 @@ const GroceryTab = ({ dishes = [] }) => {
           isGenerating={isGenerating}
         />
   
-        {(neededItems.length > 0 || availableItems.length > 0) && (
-          <GroceryLists
-            neededItems={neededItems}
-            pantryItems={availableItems}
-            checkedNeededItems={checkedNeededItems}
-            checkedPantryItems={checkedPantryItems}
-            onToggleNeededItem={toggleNeededItem}
-            onTogglePantryItem={togglePantryItem}
-          />
-        )}
+        <GroceryLists
+          neededItems={neededItems}
+          pantryItems={availableItems}
+          checkedNeededItems={checkedNeededItems}
+          checkedPantryItems={checkedPantryItems}
+          onToggleNeededItem={toggleNeededItem}
+          onTogglePantryItem={togglePantryItem}
+          onAddManualItem={handleAddManualItem}
+          onRemoveNeededItem={handleRemoveNeededItem}
+        />
       </div>
     </div>
   );
