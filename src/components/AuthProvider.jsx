@@ -119,7 +119,6 @@ export const AuthProvider = ({ children }) => {
                          focus:z-10 sm:text-sm
                          transition-colors duration-200
                          [&:-webkit-autofill]:[-webkit-background-clip:text]
-                         [&:-webkit-autofill]:[-webkit-text-fill-color:rgb(243_244_246)]
                          dark:[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(243_244_246)]
                          [&:-webkit-autofill]:[transition-delay:9999s]
                          [&:-webkit-autofill]:[transition-property:background-color]"
