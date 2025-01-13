@@ -5,7 +5,8 @@ const DishList = ({
   filteredDishes, 
   expandedDishes, 
   toggleDishExpansion, 
-  handleDeleteDish, 
+  handleDeleteDish,
+  handleEditDish,
   isDeleting,
   searchQuery 
 }) => {
@@ -26,6 +27,7 @@ const DishList = ({
           isExpanded={expandedDishes.has(dish.id)}
           onToggleExpand={() => toggleDishExpansion(dish.id)}
           onDelete={(e) => handleDeleteDish(dish.id, e)}
+          onEdit={handleEditDish}
           isDeleting={isDeleting}
         />
       ))}

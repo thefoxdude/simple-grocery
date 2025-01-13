@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, deleteDoc, doc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 
 export const useDishes = () => {
@@ -45,17 +45,40 @@ export const useDishes = () => {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      const dishesRef = collection(db, 'dishes');
-      const dishWithUser = {
-        ...dishData,
-        userId,
-        createdAt: new Date().toISOString()
-      };
-      
-      const docRef = await addDoc(dishesRef, dishWithUser);
-      const newDish = { id: docRef.id, ...dishWithUser };
-      setDishes(prevDishes => [...prevDishes, newDish]);
-      return newDish;
+      // If dishData has an id, update existing dish
+      if (dishData.id) {
+        const dishRef = doc(db, 'dishes', dishData.id);
+        const updateData = {
+          ...dishData,
+          updatedAt: new Date().toISOString()
+        };
+        await updateDoc(dishRef, updateData);
+        
+        setDishes(prevDishes => 
+          prevDishes.map(dish => 
+            dish.id === dishData.id 
+              ? { ...dish, ...updateData }
+              : dish
+          ).sort((a, b) => a.name.localeCompare(b.name))
+        );
+        
+        return { ...dishData, ...updateData };
+      } else {
+        // Create new dish
+        const dishesRef = collection(db, 'dishes');
+        const newDishData = {
+          ...dishData,
+          userId,
+          createdAt: new Date().toISOString()
+        };
+        
+        const docRef = await addDoc(dishesRef, newDishData);
+        const newDish = { id: docRef.id, ...newDishData };
+        setDishes(prevDishes => 
+          [...prevDishes, newDish].sort((a, b) => a.name.localeCompare(b.name))
+        );
+        return newDish;
+      }
     } catch (err) {
       setOperationError(err.message);
       throw err;

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { X, Plus, Loader } from 'lucide-react';
+import { X, Plus, Save, Loader } from 'lucide-react';
 import IngredientInput from './IngredientInput';
 
 const AddNewDishModal = ({ 
@@ -9,7 +9,8 @@ const AddNewDishModal = ({
   setNewDish, 
   addDish, 
   isSaving, 
-  operationError 
+  operationError,
+  isEditing = false
 }) => {
   const modalRef = useRef(null);
 
@@ -60,7 +61,9 @@ const AddNewDishModal = ({
         className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
         <div className="border-b border-emerald-100 dark:border-gray-700 p-4 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">Add New Dish</h3>
+          <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+            {isEditing ? 'Edit Dish' : 'Add New Dish'}
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-emerald-50 dark:hover:bg-gray-800 rounded-full transition-colors duration-200"
@@ -133,8 +136,8 @@ const AddNewDishModal = ({
               </>
             ) : (
               <>
-                <Plus className="h-5 w-5" />
-                <span>Add Dish</span>
+                {isEditing ? <Save className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                <span>{isEditing ? 'Update Dish' : 'Add Dish'}</span>
               </>
             )}
           </button>
