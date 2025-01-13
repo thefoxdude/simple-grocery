@@ -1,7 +1,14 @@
 import React from 'react';
-import { ChevronDown, Loader, Trash2 } from 'lucide-react';
+import { ChevronDown, Loader, Trash2, Pencil } from 'lucide-react';
 
-const DishItem = ({ dish, isExpanded, onToggleExpand, onDelete, isDeleting }) => {
+const DishItem = ({ 
+  dish, 
+  isExpanded, 
+  onToggleExpand, 
+  onDelete, 
+  onEdit,
+  isDeleting 
+}) => {
   return (
     <div className="group border border-emerald-100 dark:border-gray-700 rounded-lg shadow-sm 
                     hover:shadow-md transition-shadow duration-200 bg-white dark:bg-gray-900 
@@ -27,22 +34,36 @@ const DishItem = ({ dish, isExpanded, onToggleExpand, onDelete, isDeleting }) =>
                          ${isExpanded ? 'rotate-180' : ''}`}
             />
           </div>
-          <button
-            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-full 
-                      transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(e);
-            }}
-            disabled={isDeleting}
-            aria-label={isDeleting ? "Deleting dish..." : "Delete dish"}
-          >
-            {isDeleting ? (
-              <Loader className="h-4 w-4 animate-spin text-red-500 dark:text-red-400" />
-            ) : (
-              <Trash2 className="h-4 w-4 text-red-400 dark:text-red-500" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(dish);
+              }}
+              className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 
+                        rounded-full transition-colors duration-200"
+              aria-label="Edit dish"
+            >
+              <Pencil className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(e);
+              }}
+              disabled={isDeleting}
+              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/50 
+                        rounded-full transition-colors duration-200
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={isDeleting ? "Deleting dish..." : "Delete dish"}
+            >
+              {isDeleting ? (
+                <Loader className="h-4 w-4 animate-spin text-red-500 dark:text-red-400" />
+              ) : (
+                <Trash2 className="h-4 w-4 text-red-400 dark:text-red-500" />
+              )}
+            </button>
+          </div>
         </div>
         
         {isExpanded && (

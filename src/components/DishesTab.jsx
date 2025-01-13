@@ -14,6 +14,7 @@ const DishesTab = () => {
   });
   const [expandedDishes, setExpandedDishes] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingDish, setEditingDish] = useState(null);
   
   const { 
     dishes, 
@@ -46,6 +47,15 @@ const DishesTab = () => {
     });
   };
 
+  const handleEditDish = (dish) => {
+    setEditingDish(dish);
+    setNewDish({
+      ...dish,
+      ingredients: [...dish.ingredients]
+    });
+    setIsModalOpen(true);
+  };
+
   const addDish = async () => {
     if (newDish.name && newDish.ingredients.some(i => i.name)) {
       const cleanedIngredients = newDish.ingredients.filter(i => i.name);
@@ -54,6 +64,10 @@ const DishesTab = () => {
         recipe: newDish.recipe || '',
         ingredients: cleanedIngredients
       };
+      
+      if (editingDish) {
+        dishData.id = editingDish.id;
+      }
       
       try {
         const savedDish = await saveDish(dishData);
@@ -65,6 +79,7 @@ const DishesTab = () => {
           ingredients: [{ name: '', amount: '', unit: '' }]
         });
         setIsModalOpen(false);
+        setEditingDish(null);
       } catch (err) {
         console.error('Failed to save dish:', err);
       }
@@ -96,7 +111,15 @@ const DishesTab = () => {
           <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">Dishes</h2>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingDish(null);
+            setNewDish({ 
+              name: '', 
+              recipe: '',
+              ingredients: [{ name: '', amount: '', unit: '' }]
+            });
+            setIsModalOpen(true);
+          }}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
                     text-white rounded-lg transition-colors duration-200
                     flex items-center gap-2
@@ -118,6 +141,7 @@ const DishesTab = () => {
           expandedDishes={expandedDishes}
           toggleDishExpansion={toggleDishExpansion}
           handleDeleteDish={handleDeleteDish}
+          handleEditDish={handleEditDish}
           isDeleting={isDeleting}
           searchQuery={searchQuery}
         />
@@ -125,12 +149,21 @@ const DishesTab = () => {
 
       <AddNewDishModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingDish(null);
+          setNewDish({ 
+            name: '', 
+            recipe: '',
+            ingredients: [{ name: '', amount: '', unit: '' }]
+          });
+        }}
         newDish={newDish}
         setNewDish={setNewDish}
         addDish={addDish}
         isSaving={isSaving}
         operationError={operationError}
+        isEditing={!!editingDish}
       />
     </div>
   );
