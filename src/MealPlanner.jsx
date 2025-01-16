@@ -11,6 +11,7 @@ import FeedbackModal from './forms/FeedbackModal';
 import { useAuth } from './hooks/useAuth';
 import { useSettings } from './hooks/useSettings';
 import Footer from './components/Footer';
+import InstallPrompt from './components/InstallPrompt';
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
@@ -115,6 +116,7 @@ const MealPlanner = () => {
         onOpenFeedback={() => setShowFeedback(true)}
         onLogout={logout}
       />
+      <InstallPrompt />
     </div>
   );
 };
