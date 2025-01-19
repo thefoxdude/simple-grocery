@@ -56,7 +56,7 @@ const CustomInstallBanner = () => {
       alert('To install this app:\n\n' +
             '1. Open this site in Chrome or Edge\n' +
             '2. Click the browser menu (three dots)\n' +
-            '3. Look for "Install Meal Planner" or "Add to Home screen"');
+            '3. Look for "Install Simple Meals" or "Add to Home screen"');
     }
   };
 
@@ -69,7 +69,7 @@ const CustomInstallBanner = () => {
           <Download className="h-6 w-6 text-emerald-600" />
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white">
-              Install Meal Planner
+              Install Simple Meals
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Add to your device for quick access and offline use
