@@ -1,5 +1,5 @@
 // Convert everything to milliliters for volume and grams for weight
-const VOLUME_CONVERSIONS = {
+export const VOLUME_CONVERSIONS = {
     'teaspoon (tsp)': 4.92892,
     'tablespoon (tbsp)': 14.7868,
     'fluid ounce (fl oz)': 29.5735,
@@ -11,14 +11,14 @@ const VOLUME_CONVERSIONS = {
     'liter (l)': 1000
 };
 
-const WEIGHT_CONVERSIONS = {
+export const WEIGHT_CONVERSIONS = {
     'ounce (oz)': 28.3495,
     'pound (lb)': 453.592,
     'gram (g)': 1,
     'kilogram (kg)': 1000
 };
 
-const COUNT_UNITS = new Set([
+export const COUNT_UNITS = new Set([
     'piece',
     'dozen',
     'pack',
