@@ -6,7 +6,7 @@ const Footer = ({ onOpenSettings, onLogout, onOpenFeedback }) => {
     <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-emerald-100 dark:border-gray-700 py-4">
       <div className="container mx-auto px-6 flex justify-between items-center">
         <div className="text-sm text-emerald-600 dark:text-emerald-400">
-          © {new Date().getFullYear()} Meal Planner
+          © {new Date().getFullYear()} Simple Meals
         </div>
         
         <div className="flex items-center gap-4">

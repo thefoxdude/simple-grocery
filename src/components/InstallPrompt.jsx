@@ -121,7 +121,7 @@ const InstallPrompt = () => {
         <h3 className="font-semibold text-lg">Install App</h3>
       </div>
       <p className="text-gray-600 dark:text-gray-300 mb-3">
-        Install Meal Planner on your device for quick access and offline use.
+        Install Simple Meals on your device for quick access and offline use.
       </p>
       <button 
         onClick={handleInstallClick}

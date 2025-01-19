@@ -63,7 +63,7 @@ const MealPlanner = () => {
         <div className="flex flex-col gap-6">
           <div className="flex justify-center items-center">
             <h1 className="text-3xl font-bold text-emerald-800 dark:text-emerald-400">
-              Meal Planner
+              Simple Meals
             </h1>
           </div>
           
