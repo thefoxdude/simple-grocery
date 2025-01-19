@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Trash2 } from 'lucide-react';
-import { compareAmounts, convertToBaseUnit } from '../helpers/unitConversions';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePantry } from '../hooks/usePantry';
 import { useGroceryList } from '../hooks/useGroceryList';
 import { DateRangeSelector } from '../forms/DateRangeSelector';
 import { GenerateListButton } from './GenerateListButton';
 import { GroceryLists } from './GroceryLists';
+import { generateGroceryList } from '../helpers/groceryListHelper';
 
 const DAYS_OF_WEEK = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
@@ -31,7 +31,6 @@ const GroceryTab = ({ dishes = [] }) => {
   const [checkedNeededItems, setCheckedNeededItems] = useState(new Set());
   const [checkedPantryItems, setCheckedPantryItems] = useState(new Set());
 
-  // Load initial data when component mounts
   useEffect(() => {
     const loadInitialData = async () => {
       await loadPantryItems();
@@ -96,12 +95,10 @@ const GroceryTab = ({ dishes = [] }) => {
       const updatedItems = neededItems.filter((_, i) => i !== index);
       setNeededItems(updatedItems);
 
-      // If it's a manual item, remove it from the database
       if (itemToRemove.isManual) {
         await removeManualItem(itemToRemove.id);
       }
 
-      // Update grocery list
       const newCheckedItems = new Set(
         Array.from(checkedNeededItems)
           .filter(i => i !== index)
@@ -122,7 +119,7 @@ const GroceryTab = ({ dishes = [] }) => {
     }
   };
 
-  const generateGroceryList = async () => {
+  const generateList = async () => {
     setIsGenerating(true);
     
     try {
@@ -172,45 +169,9 @@ const GroceryTab = ({ dishes = [] }) => {
         nextDate.setUTCDate(nextDate.getUTCDate() + 1);
         currentDate = nextDate;
       }
-      
-      const allIngredients = Array.from(ingredientMap.values())
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(item => ({
-          ...item,
-          amount: Math.round(item.amount * 100) / 100
-        }));
 
-      const needed = [];
-      const available = [];
-
-      allIngredients.forEach(ingredient => {
-        const matchingPantryItem = pantryItems.find(item => 
-          ingredient.name.toLowerCase() === item.name.toLowerCase()
-        );
-
-        if (matchingPantryItem) {
-          const hasEnough = compareAmounts(
-            matchingPantryItem.amount,
-            matchingPantryItem.unit,
-            ingredient.amount,
-            ingredient.unit
-          );
-
-          if (hasEnough) {
-            available.push(ingredient);
-          } else {
-            const baseNeeded = convertToBaseUnit(ingredient.amount, ingredient.unit);
-            const baseHave = convertToBaseUnit(matchingPantryItem.amount, matchingPantryItem.unit);
-            const neededAmount = Math.max(0, baseNeeded - baseHave);
-            needed.push({
-              ...ingredient,
-              amount: Math.round(neededAmount * 100) / 100
-            });
-          }
-        } else {
-          needed.push(ingredient);
-        }
-      });
+      // Generate the grocery list using the helper function
+      const { needed, available } = generateGroceryList(ingredientMap, pantryItems);
 
       // Get current manual items
       const savedList = await loadGroceryList();
@@ -312,7 +273,7 @@ const GroceryTab = ({ dishes = [] }) => {
         />
   
         <GenerateListButton
-          onClick={generateGroceryList}
+          onClick={generateList}
           disabled={!startDate || !endDate}
           isGenerating={isGenerating}
         />
