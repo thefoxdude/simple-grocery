@@ -61,3 +61,23 @@ registerRoute(
     ],
   })
 );
+
+self.addEventListener('install', event => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Clear old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cache => {
+            return caches.delete(cache);
+          })
+        );
+      })
+    ])
+  );
+});

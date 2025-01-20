@@ -12,6 +12,7 @@ import { useAuth } from './hooks/useAuth';
 import { useSettings } from './hooks/useSettings';
 import Footer from './components/Footer';
 import CustomInstallBanner from './components/CustomInstallBanner';
+import VersionChecker from './components/VersionChecker';
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
@@ -116,6 +117,7 @@ const MealPlanner = () => {
         onOpenFeedback={() => setShowFeedback(true)}
         onLogout={logout}
       />
+      <VersionChecker />
       <CustomInstallBanner />
     </div>
   );
