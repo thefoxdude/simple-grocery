@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 
-export const VERSION = '0.0.5'; // Update this with your app version
+export const VERSION = '0.0.6'; // Update this with your app version
 
 const VersionChecker = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);

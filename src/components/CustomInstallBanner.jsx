@@ -4,17 +4,29 @@ import { X, Download } from 'lucide-react';
 const CustomInstallBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [installPlatform, setInstallPlatform] = useState('default');
 
   useEffect(() => {
     // Check if already installed
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone ||
+                       document.referrer.includes('android-app://');
     
     // Check if user has previously dismissed the banner
     const hasUserDismissed = localStorage.getItem('installBannerDismissed');
     
-    // Show banner if not installed and not dismissed
+    // Detect platform
+    const detectPlatform = () => {
+      const ua = navigator.userAgent.toLowerCase();
+      if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+      if (/android/.test(ua)) return 'android';
+      return 'default';
+    };
+
     if (!isInstalled && !hasUserDismissed) {
-      // Wait 30 seconds before showing the banner
+      setInstallPlatform(detectPlatform());
+      
+      // Show banner after 30 seconds
       const timer = setTimeout(() => {
         setShowBanner(true);
       }, 30000);
@@ -26,6 +38,7 @@ const CustomInstallBanner = () => {
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -35,6 +48,26 @@ const CustomInstallBanner = () => {
   const handleDismiss = () => {
     setShowBanner(false);
     localStorage.setItem('installBannerDismissed', 'true');
+  };
+
+  const getInstallInstructions = () => {
+    switch (installPlatform) {
+      case 'ios':
+        return 'To install:\n\n' +
+               '1. Tap the Share button in Safari\n' +
+               '2. Scroll down and tap "Add to Home Screen"\n' +
+               '3. Tap "Add" to confirm';
+      case 'android':
+        return 'To install:\n\n' +
+               '1. Open this site in Chrome\n' +
+               '2. Tap the menu (three dots)\n' +
+               '3. Tap "Add to Home screen"';
+      default:
+        return 'To install:\n\n' +
+               '1. Open this site in Chrome or Edge\n' +
+               '2. Click the browser menu\n' +
+               '3. Look for "Install Simple Meals"';
+    }
   };
 
   const handleInstallClick = async () => {
@@ -49,14 +82,12 @@ const CustomInstallBanner = () => {
         }
       } catch (error) {
         console.error('Error during installation:', error);
+        alert(getInstallInstructions());
       }
       setDeferredPrompt(null);
     } else {
-      // If no deferred prompt, provide instructions
-      alert('To install this app:\n\n' +
-            '1. Open this site in Chrome or Edge\n' +
-            '2. Click the browser menu (three dots)\n' +
-            '3. Look for "Install Simple Meals" or "Add to Home screen"');
+      // If no deferred prompt, provide platform-specific instructions
+      alert(getInstallInstructions());
     }
   };
 
