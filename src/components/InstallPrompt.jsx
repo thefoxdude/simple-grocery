@@ -1,134 +1,128 @@
 import React, { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 
 const InstallPrompt = () => {
+  const [showBanner, setShowBanner] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallAlert, setShowInstallAlert] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState('default');
 
   useEffect(() => {
-    console.log('InstallPrompt mounted');
+    // Check if already installed
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone ||
+                       document.referrer.includes('android-app://');
     
-    // Check if running in standalone mode (already installed)
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches 
-      || window.navigator.standalone 
-      || document.referrer.includes('android-app://');
+    // Check if user has previously dismissed the banner
+    const hasUserDismissed = localStorage.getItem('installBannerDismissed');
     
-    if (isInstalled) {
-      console.log('App is already installed');
-      return;
-    }
-
-    // Check PWA criteria
-    const checkPWACriteria = () => {
-      // Check HTTPS
-      const isHttps = window.location.protocol === 'https:' 
-        || window.location.hostname === 'localhost' 
-        || window.location.hostname === '127.0.0.1';
-      console.log('Is HTTPS or localhost:', isHttps);
-
-      // Check service worker support
-      const hasServiceWorkerSupport = 'serviceWorker' in navigator;
-      console.log('Has service worker support:', hasServiceWorkerSupport);
-
-      // Check if manifest exists
-      const hasManifest = !!document.querySelector('link[rel="manifest"]');
-      console.log('Has manifest:', hasManifest);
-
-      // Check if running in a PWA-capable browser
-      const isPWACapableBrowser = /chrome/i.test(navigator.userAgent) 
-        || /edge/i.test(navigator.userAgent);
-      console.log('Is PWA-capable browser:', isPWACapableBrowser);
-
-      return isHttps && hasServiceWorkerSupport && hasManifest && isPWACapableBrowser;
+    // Detect platform
+    const detectPlatform = () => {
+      const ua = navigator.userAgent.toLowerCase();
+      if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+      if (/android/.test(ua)) return 'android';
+      return 'default';
     };
 
-    console.log('PWA installation criteria met:', checkPWACriteria());
+    if (!isInstalled && !hasUserDismissed) {
+      setInstallPlatform(detectPlatform());
+      
+      // Show banner after 30 seconds
+      const timer = setTimeout(() => {
+        setShowBanner(true);
+      }, 30000);
 
+      return () => clearTimeout(timer);
+    }
+
+    // Listen for the beforeinstallprompt event
     const handler = (e) => {
-      console.log('beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallAlert(true);
-      setDebugMode(false); // Turn off debug mode if we get a real prompt
+      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    console.log('Added beforeinstallprompt event listener');
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  const handleDismiss = () => {
+    setShowBanner(false);
+    localStorage.setItem('installBannerDismissed', 'true');
+  };
+
+  const getInstallInstructions = () => {
+    switch (installPlatform) {
+      case 'ios':
+        return 'To install:\n\n' +
+               '1. Tap the Share button in Safari\n' +
+               '2. Scroll down and tap "Add to Home Screen"\n' +
+               '3. Tap "Add" to confirm';
+      case 'android':
+        return 'To install:\n\n' +
+               '1. Open this site in Chrome\n' +
+               '2. Tap the menu (three dots)\n' +
+               '3. Tap "Add to Home screen"';
+      default:
+        return 'To install:\n\n' +
+               '1. Open this site in Chrome or Edge\n' +
+               '2. Click the browser menu\n' +
+               '3. Look for "Install Simple Meals"';
+    }
+  };
+
   const handleInstallClick = async () => {
-    if (!deferredPrompt && !debugMode) {
-      console.log('No deferred prompt available');
-      // Show some user feedback about why installation isn't available
-      alert('Installation is not available right now. Common reasons include:\n\n' +
-            '- The app is already installed\n' +
-            '- You\'re not using a supported browser\n' +
-            '- You\'ve previously dismissed the install prompt\n\n' +
-            'Try opening this site in Chrome or Edge if you\'re using a different browser.');
-      return;
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        if (outcome === 'accepted') {
+          setShowBanner(false);
+          localStorage.setItem('installBannerDismissed', 'true');
+        }
+      } catch (error) {
+        console.error('Error during installation:', error);
+        alert(getInstallInstructions());
+      }
+      setDeferredPrompt(null);
+    } else {
+      // If no deferred prompt, provide platform-specific instructions
+      alert(getInstallInstructions());
     }
-
-    if (debugMode) {
-      console.log('Debug mode: Simulating install prompt');
-      alert('This is a simulated install prompt for testing.\n\n' +
-            'In a real scenario, you would see the browser\'s native install prompt here.');
-      setShowInstallAlert(false);
-      setDebugMode(false);
-      return;
-    }
-
-    console.log('Showing install prompt');
-    try {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
-    } catch (error) {
-      console.error('Error during installation:', error);
-    }
-
-    setDeferredPrompt(null);
-    setShowInstallAlert(false);
   };
 
-  // Force show the prompt for testing
-  const debugShowPrompt = () => {
-    console.log('Debug: Forcing prompt to show');
-    setDebugMode(true);
-    setShowInstallAlert(true);
-  };
-
-  if (!showInstallAlert) {
-    // Show debug button only in non-production
-    return process.env.NODE_ENV !== 'production' ? (
-      <button 
-        onClick={debugShowPrompt}
-        className="fixed bottom-4 right-4 bg-gray-200 p-2 rounded"
-      >
-        Debug: Show Install Prompt
-      </button>
-    ) : null;
-  }
+  if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center gap-2 mb-2">
-        <Download className="h-5 w-5 text-emerald-600" />
-        <h3 className="font-semibold text-lg">Install App</h3>
+    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg border-t border-gray-200 dark:border-gray-700 p-4">
+      <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Download className="h-6 w-6 text-emerald-600" />
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">
+              Install Simple Meals
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Add to your device for quick access and offline use
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleInstallClick}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors text-sm"
+          >
+            Install
+          </button>
+          <button
+            onClick={handleDismiss}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            aria-label="Dismiss"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
-      <p className="text-gray-600 dark:text-gray-300 mb-3">
-        Install Simple Meals on your device for quick access and offline use.
-      </p>
-      <button 
-        onClick={handleInstallClick}
-        className="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors"
-      >
-        Install Now
-      </button>
     </div>
   );
 };
