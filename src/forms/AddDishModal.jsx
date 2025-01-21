@@ -3,10 +3,8 @@ import { X, Check, Search } from 'lucide-react';
 
 const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDish] = useState(null);
+  const [selectedDish, setSelectedDish] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -15,24 +13,14 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
       }
     };
 
-    const handleDropdownClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(!isOpen);
-      }
-    };
-
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('mousedown', handleDropdownClickOutside);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('mousedown', handleDropdownClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
   const handleSelectDish = (dish) => {
+    setSelectedDish(dish);
     onAddDish(dish.id, selectedDay, selectedDishType);
-    setIsOpen(false);
+    onClose();
   };
 
   // Filter dishes based on search query
