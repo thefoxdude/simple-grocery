@@ -14,18 +14,17 @@ export const useGroceryList = () => {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
-      const groceryListRef = doc(db, 'groceryLists', userId);
-      const manualItemsRef = doc(db, 'manualGroceryItems', userId);
-      
+      // Load both grocery list and manual items
       const [groceryListDoc, manualItemsDoc] = await Promise.all([
-        getDoc(groceryListRef),
-        getDoc(manualItemsRef)
+        getDoc(doc(db, 'groceryLists', userId)),
+        getDoc(doc(db, 'manualGroceryItems', userId))
       ]);
-      
+
       const manualItems = manualItemsDoc.exists() ? manualItemsDoc.data().items || [] : [];
       
       if (groceryListDoc.exists()) {
         const groceryData = groceryListDoc.data();
+        // Combine manual items with generated items
         return {
           ...groceryData,
           neededItems: [...(groceryData.neededItems || []), ...manualItems]
@@ -56,10 +55,22 @@ export const useGroceryList = () => {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
+      // Separate manual items from generated items
+      const manualItems = groceryData.neededItems.filter(item => item.isManual);
+      const generatedItems = groceryData.neededItems.filter(item => !item.isManual);
+
+      // Save generated items to groceryLists
       const groceryListRef = doc(db, 'groceryLists', userId);
-      
       await setDoc(groceryListRef, {
         ...groceryData,
+        neededItems: generatedItems,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Save manual items to manualGroceryItems
+      const manualItemsRef = doc(db, 'manualGroceryItems', userId);
+      await setDoc(manualItemsRef, {
+        items: manualItems,
         updatedAt: new Date().toISOString()
       });
 
@@ -80,6 +91,7 @@ export const useGroceryList = () => {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error('No user logged in');
 
+      // Only clear the generated items
       const groceryListRef = doc(db, 'groceryLists', userId);
       await deleteDoc(groceryListRef);
     } catch (err) {

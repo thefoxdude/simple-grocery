@@ -62,7 +62,9 @@ const GroceryTab = ({ dishes = [] }) => {
 
   const handleClearList = async () => {
     await clearGroceryList();
-    setNeededItems([]);
+    // Keep manual items, clear only generated items
+    const manualItems = neededItems.filter(item => item.isManual);
+    setNeededItems(manualItems);
     setAvailableItems([]);
     setCheckedNeededItems(new Set());
     setCheckedPantryItems(new Set());
@@ -127,6 +129,10 @@ const GroceryTab = ({ dishes = [] }) => {
       const end = normalizeDate(endDate);
       const ingredientMap = new Map();
       
+      // Get existing manual items before generating new list
+      const savedList = await loadGroceryList();
+      const manualItems = savedList?.neededItems?.filter(item => item.isManual) || [];
+      
       let currentDate = new Date(start);
       while (currentDate <= end) {
         currentDate = normalizeDate(currentDate);
@@ -173,12 +179,9 @@ const GroceryTab = ({ dishes = [] }) => {
       // Generate the grocery list using the helper function
       const { needed, available } = generateGroceryList(ingredientMap, pantryItems);
 
-      // Get current manual items
-      const savedList = await loadGroceryList();
-      const manualItems = savedList?.neededItems?.filter(item => item.isManual) || [];
-
-      // Combine generated items with manual items
-      const allNeededItems = [...needed, ...manualItems];
+      // Combine generated items with manual items, ensuring no duplicates
+      const generatedItems = needed.map(item => ({ ...item, isManual: false }));
+      const allNeededItems = [...generatedItems, ...manualItems];
 
       await saveGroceryList({
         startDate,
