@@ -1,25 +1,26 @@
 // Convert everything to milliliters for volume and grams for weight
 export const VOLUME_CONVERSIONS = {
-    'teaspoon (tsp)': 4.92892,
-    'tablespoon (tbsp)': 14.7868,
-    'fluid ounce (fl oz)': 29.5735,
+    'teaspoon': 4.92892,
+    'tablespoon': 14.7868,
+    'fluid ounce': 29.5735,
     'cup': 236.588,
-    'pint (pt)': 473.176,
-    'quart (qt)': 946.353,
-    'gallon (gal)': 3785.41,
-    'milliliter (ml)': 1,
-    'liter (l)': 1000
+    'pint': 473.176,
+    'quart': 946.353,
+    'gallon': 3785.41,
+    'milliliter': 1,
+    'liter': 1000
 };
 
 export const WEIGHT_CONVERSIONS = {
-    'ounce (oz)': 28.3495,
-    'pound (lb)': 453.592,
-    'gram (g)': 1,
-    'kilogram (kg)': 1000
+    'ounce': 28.3495,
+    'pound': 453.592,
+    'gram': 1,
+    'kilogram': 1000
 };
 
 export const COUNT_UNITS = new Set([
     'piece',
+    'item',
     'dozen',
     'pack',
     'can',

@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, ChevronDown, Check } from 'lucide-react';
+import { X, ChevronDown, Check, Search } from 'lucide-react';
 
 const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedDish] = useState(null);
 
   useEffect(() => {
@@ -34,6 +35,11 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
     setIsOpen(false);
   };
 
+  // Filter dishes based on search query
+  const filteredDishes = dishes.filter(dish =>
+    dish.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div ref={modalRef} 
@@ -51,49 +57,51 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
           </button>
         </div>
 
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full p-2 text-left border border-emerald-200 dark:border-gray-700 rounded-md
-                     flex items-center justify-between
-                     bg-white dark:bg-gray-800 
-                     text-emerald-800 dark:text-emerald-200
-                     hover:border-emerald-300 dark:hover:border-gray-600
-                     focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          >
-            <span className={selectedDish ? '' : 'text-emerald-400 dark:text-emerald-600'}>
-              {selectedDish ? selectedDish.name : 'Choose a dish...'}
-            </span>
-            <ChevronDown className={`h-5 w-5 text-emerald-500 transform transition-transform duration-200
-                                  ${isOpen ? 'rotate-180' : ''}`} />
-          </button>
+        {/* Search Input */}
+        <div className="mb-4 relative">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search dishes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 pl-10 border border-emerald-200 dark:border-gray-600 rounded-lg
+                       bg-white dark:bg-gray-800 
+                       text-emerald-800 dark:text-emerald-200
+                       placeholder-emerald-400 dark:placeholder-emerald-500
+                       focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+            />
+            <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 
+                           text-emerald-400" />
+          </div>
+        </div>
 
-          {isOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-emerald-200 
-                          dark:border-gray-700 rounded-md shadow-lg max-h-[300px] overflow-y-auto">
-              <div className="space-y-1">
-                {dishes.map(dish => (
-                  <button
-                    key={dish.id}
-                    onClick={() => handleSelectDish(dish)}
-                    className="w-full text-left px-4 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-900
-                             text-emerald-800 dark:text-emerald-200
-                             flex items-center justify-between
-                             transition-colors duration-200"
-                  >
-                    <span>{dish.name}</span>
-                    {selectedDish?.id === dish.id && (
-                      <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
-                    )}
-                  </button>
-                ))}
-
-                {dishes.length === 0 && (
-                  <div className="px-4 py-2 text-emerald-600 dark:text-emerald-400">
-                    No dishes available
-                  </div>
-                )}
-              </div>
+        <div className="max-h-[400px] overflow-y-auto">
+          {filteredDishes.length > 0 ? (
+            <div className="space-y-1">
+              {filteredDishes.map(dish => (
+                <button
+                  key={dish.id}
+                  onClick={() => handleSelectDish(dish)}
+                  className="w-full text-left px-4 py-3 hover:bg-emerald-50 dark:hover:bg-emerald-900
+                           text-emerald-800 dark:text-emerald-200
+                           flex items-center justify-between
+                           transition-colors duration-200 rounded-md"
+                >
+                  <span>{dish.name}</span>
+                  {selectedDish?.id === dish.id && (
+                    <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-emerald-600 dark:text-emerald-400">
+              {searchQuery ? (
+                <>No dishes found matching "{searchQuery}"</>
+              ) : (
+                <>No dishes available</>
+              )}
             </div>
           )}
         </div>

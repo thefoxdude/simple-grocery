@@ -71,21 +71,54 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
         newExpandedState[day] = true;
       });
       setExpandedDays(newExpandedState);
-      setExpandState('all'); // Update expand state when changing weeks
+      setExpandState('all');
     }
   }, [currentWeek.id, loadUserMealPlan, weekPlans, DAYS_OF_WEEK, animationDirection]);
 
-  // Set only current day to be expanded on initial load
+  // Set initial expanded state based on viewport
   useEffect(() => {
     const today = new Date();
     const currentDayName = DAYS_OF_WEEK[today.getDay()];
     
-    setExpandedDays(prev => ({
-      ...prev,
-      [currentDayName]: true
-    }));
-    setExpandState('partial'); // Set initial expand state
-  }, [DAYS_OF_WEEK]); // Include DAYS_OF_WEEK in dependency array
+    // Check if we're on desktop using window.matchMedia
+    const isDesktop = window.matchMedia('(min-width: 1280px)').matches;
+    
+    if (isDesktop) {
+      // On desktop, expand all days by default
+      const allExpanded = DAYS_OF_WEEK.reduce((acc, day) => {
+        acc[day] = true;
+        return acc;
+      }, {});
+      setExpandedDays(allExpanded);
+      setExpandState('all');
+    } else {
+      // On mobile, only expand current day
+      setExpandedDays({
+        [currentDayName]: true
+      });
+      setExpandState('partial');
+    }
+
+    // Listen for viewport changes
+    const mediaQuery = window.matchMedia('(min-width: 1280px)');
+    const handleViewportChange = (e) => {
+      if (e.matches) {
+        // Switched to desktop
+        const allExpanded = DAYS_OF_WEEK.reduce((acc, day) => {
+          acc[day] = true;
+          return acc;
+        }, {});
+        setExpandedDays(allExpanded);
+        setExpandState('all');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleViewportChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleViewportChange);
+    };
+  }, [DAYS_OF_WEEK]);
 
   // Reset animation direction after animation completes
   useEffect(() => {
@@ -107,24 +140,24 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
 
   const isCurrentDay = (day) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's time to start of day
+    today.setHours(0, 0, 0, 0);
     
     const dayIndex = DAYS_OF_WEEK.indexOf(day);
     const dayDate = new Date(currentWeek.start);
     dayDate.setDate(dayDate.getDate() + dayIndex);
-    dayDate.setHours(0, 0, 0, 0); // Normalize day's time to start of day
+    dayDate.setHours(0, 0, 0, 0);
     
     return dayDate.getTime() === today.getTime();
   };
 
   const isPastDay = (day) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's time to start of day
+    today.setHours(0, 0, 0, 0);
     
     const dayIndex = DAYS_OF_WEEK.indexOf(day);
     const dayDate = new Date(currentWeek.start);
     dayDate.setDate(dayDate.getDate() + dayIndex);
-    dayDate.setHours(0, 0, 0, 0); // Normalize day's time to start of day
+    dayDate.setHours(0, 0, 0, 0);
     
     return dayDate.getTime() < today.getTime();
   };
@@ -232,8 +265,8 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
           </button>
         </div>
 
-        {/* Expand/Collapse Controls */}
-        <div className="flex space-x-2">
+        {/* Expand/Collapse Controls - Mobile Only */}
+        <div className="block xl:hidden flex space-x-2">
           <button
             onClick={() => handleExpandStateChange('all')}
             className={`px-4 py-2 rounded-lg transition-colors duration-200

@@ -69,11 +69,31 @@ const MealPlanner = () => {
           </div>
           
           <div className="w-full">
-            <div className="grid grid-cols-4 border-b border-emerald-100 dark:border-gray-700 mb-6">
-              <TabButton icon={Calendar} label='Meal Plan' isActive={activeTab === 'meal-plan'} onClick={() => setActiveTab('meal-plan')} />
-              <TabButton icon={ShoppingCart} label='Grocery List' isActive={activeTab === 'grocery'} onClick={() => setActiveTab('grocery')} />
-              <TabButton icon={Warehouse} label='Pantry' isActive={activeTab === 'pantry'} onClick={() => setActiveTab('pantry')} />
-              <TabButton icon={Salad} label='Dishes' isActive={activeTab === 'dishes'} onClick={() => setActiveTab('dishes')} />
+            <div className="grid grid-cols-4 border-b border-emerald-100 dark:border-gray-700 mb-6 py-2">
+              <TabButton 
+                icon={Calendar} 
+                label='Meal Plan' 
+                isActive={activeTab === 'meal-plan'} 
+                onClick={() => setActiveTab('meal-plan')}
+              />
+              <TabButton 
+                icon={ShoppingCart} 
+                label='Grocery List' 
+                isActive={activeTab === 'grocery'} 
+                onClick={() => setActiveTab('grocery')}
+              />
+              <TabButton 
+                icon={Warehouse} 
+                label='Pantry' 
+                isActive={activeTab === 'pantry'} 
+                onClick={() => setActiveTab('pantry')}
+              />
+              <TabButton 
+                icon={Salad} 
+                label='Dishes' 
+                isActive={activeTab === 'dishes'} 
+                onClick={() => setActiveTab('dishes')}
+              />
             </div>
 
             {activeTab === 'meal-plan' && (
