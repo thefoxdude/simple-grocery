@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, ChevronDown, Check, Search } from 'lucide-react';
+import { X, Check, Search } from 'lucide-react';
 
 const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
@@ -17,7 +17,7 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
 
     const handleDropdownClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+        setIsOpen(!isOpen);
       }
     };
 
