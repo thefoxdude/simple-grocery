@@ -9,11 +9,11 @@ const VIEW = {
   RESET_PASSWORD: 'reset_password'
 };
 
-const AuthComponent = ({ onBack }) => {
+const AuthComponent = ({ onBack, initialView }) => {
   const { login, signup, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [currentView, setCurrentView] = useState(VIEW.LOGIN);
+  const [currentView, setCurrentView] = useState(initialView);
   const [error, setError] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
 

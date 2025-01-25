@@ -3,11 +3,12 @@ import { useAuth } from '../hooks/useAuth';
 import WelcomeScreen from './WelcomeScreen';
 import MealPlanner from '../MealPlanner';
 import { Loader } from 'lucide-react';
-import { AuthProvider } from './AuthProvider';
+import AuthComponent from './AuthComponent';
 
 const MainRouter = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [currentView, setCurrentView] = useState('login');
 
   if (loading) {
     return (
@@ -18,8 +19,11 @@ const MainRouter = () => {
   }
 
   if (user) return <MealPlanner />;
-  if (showAuth) return <AuthProvider onBack={() => setShowAuth(false)} />;
-  return <WelcomeScreen onAuthClick={() => setShowAuth(true)} />;
+  if (showAuth) return <AuthComponent onBack={() => setShowAuth(false)} initialView={currentView} />;
+  return <WelcomeScreen onAuthClick={(view) => {
+    setShowAuth(true);
+    setCurrentView(view);
+  }} />;
 };
 
 export default MainRouter;

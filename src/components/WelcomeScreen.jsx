@@ -1,6 +1,5 @@
 import React from 'react';
 import { Calendar, ShoppingCart, Warehouse, ChevronRight } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 
 const WelcomeScreen = ({ onAuthClick }) => {
   
@@ -9,19 +8,22 @@ const WelcomeScreen = ({ onAuthClick }) => {
       icon: Calendar,
       title: "Meal Planning Made Simple",
       description: "Plan your meals for the week with an intuitive calendar interface. Organize breakfast, lunch, dinner, and snacks all in one place.",
-      imagePosition: "right"
+      imagePosition: "right",
+      url: "/images/mealplanscreenshot.jpg"
     },
     {
       icon: ShoppingCart,
       title: "Smart Grocery Lists",
       description: "Automatically generate shopping lists based on your meal plan. The app tracks what's in your pantry and only shows what you need to buy.",
-      imagePosition: "left"
+      imagePosition: "left",
+      url: "/images/grocerylistscreenshot.jpg"
     },
     {
       icon: Warehouse,
       title: "Pantry Management",
       description: "Keep track of what you have at home. Never buy duplicates or run out of essentials again.",
-      imagePosition: "right"
+      imagePosition: "right",
+      url: "/images/pantryscreenshot.jpg"
     }
   ];
 
@@ -40,7 +42,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
           {/* Hero Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <button
-              onClick={onAuthClick}
+              onClick={() => onAuthClick('signup')}
               className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg 
                        text-lg font-medium transition-colors duration-200
                        flex items-center justify-center gap-2"
@@ -49,7 +51,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
               <ChevronRight className="h-5 w-5" />
             </button>
             <button
-              onClick={onAuthClick}
+              onClick={() => onAuthClick('login')}
               className="px-8 py-3 border-2 border-emerald-600 hover:bg-emerald-50 
                        dark:border-emerald-400 dark:hover:bg-emerald-900/30
                        text-emerald-600 dark:text-emerald-400 rounded-lg 
@@ -63,7 +65,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
           <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded-lg p-4 mb-20">
             <div className="aspect-video bg-emerald-200 dark:bg-emerald-800 rounded-lg flex items-center justify-center">
               <p className="text-emerald-600 dark:text-emerald-400">
-                Hero Image: Dashboard Overview
+                <img src="/images/heroscreenshot.jpg" alt="homescreen screenshot" />
               </p>
             </div>
           </div>
@@ -95,9 +97,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
               <div className="flex-1 w-full">
                 <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded-lg p-4">
                   <div className="aspect-video bg-emerald-200 dark:bg-emerald-800 rounded-lg flex items-center justify-center">
-                    <p className="text-emerald-600 dark:text-emerald-400">
-                      Feature Image {index + 1}
-                    </p>
+                    <img src={feature.url} alt="homescreen screenshot" />
                   </div>
                 </div>
               </div>
@@ -116,7 +116,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
             Join thousands of users who have made their meal planning and grocery shopping easier.
           </p>
           <button
-            onClick={onAuthClick}
+            onClick={() => onAuthClick('signup')}
             className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg 
                      text-lg font-medium transition-colors duration-200
                      flex items-center justify-center gap-2 mx-auto"
