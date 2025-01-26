@@ -127,7 +127,7 @@ const PantryTab = () => {
                   {item.name}
                 </h3>
                 <p className="text-emerald-600 dark:text-emerald-400 text-sm">
-                  {item.amount} {item.unit}
+                  {parseFloat(item.amount).toString()} {item.unit}
                 </p>
               </div>
               <button

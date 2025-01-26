@@ -1,12 +1,13 @@
 import React from 'react';
-import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, CheckCircle } from 'lucide-react';
 
 const DayColumn = ({ 
   day,
   isExpanded, 
   onToggleExpand, 
   onAddDish, 
-  onRemoveDish, 
+  onRemoveDish,
+  onToggleCompletion,
   weekPlan,
   isCurrentDay,
   isPastDay,
@@ -50,22 +51,41 @@ const DayColumn = ({
           <div className="space-y-3 xl:space-y-4">
             {mealTypes.map(dishType => (
               <div key={dishType} className="border-t border-emerald-100 pt-2 dark:border-gray-700">
-                <h4 className="font-medium capitalize text-sm xl:text-base text-emerald-700 dark:text-emerald-300">{dishType}</h4>
+                <h4 className="font-medium capitalize text-sm xl:text-base text-emerald-700 dark:text-emerald-300">
+                  {dishType}
+                </h4>
                 <div className="mt-1 space-y-1">
-                  {weekPlan[day][dishType].map((dish, idx) => (
-                    <div key={`${dish.id}-${idx}`} 
+                  {weekPlan[day][dishType].map((meal, idx) => (
+                    <div key={`${meal.id}-${idx}`} 
                       className={`flex items-center justify-between p-2 rounded-md
                                text-sm text-emerald-800 group dark:bg-gray-600
                                ${getMealItemBg()}`}
                     >
-                      <span className="truncate mr-2 dark:text-emerald-100">{dish.name}</span>
-                      <button 
-                        className="p-1 hover:bg-red-100 rounded-full transition-colors duration-200
-                                 opacity-0 group-hover:opacity-100"
-                        onClick={() => onRemoveDish(day, dishType, idx)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </button>
+                      <span className={`truncate mr-2 dark:text-emerald-100 
+                                     ${meal.completed ? 'line-through text-emerald-600 dark:text-emerald-400' : ''}`}>
+                        {meal.name}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {isPastDay && (
+                          <button 
+                            className={`p-1 rounded-full transition-colors duration-200
+                                    ${meal.completed 
+                                      ? 'text-emerald-500 dark:text-emerald-400' 
+                                      : 'text-gray-400 dark:text-gray-500 hover:text-emerald-500 dark:hover:text-emerald-400'}
+                                    opacity-0 group-hover:opacity-100`}
+                            onClick={() => onToggleCompletion(day, dishType, idx)}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button 
+                          className="p-1 hover:bg-red-100 rounded-full transition-colors duration-200
+                                   opacity-0 group-hover:opacity-100"
+                          onClick={() => onRemoveDish(day, dishType, idx)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                   <button 
