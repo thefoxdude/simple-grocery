@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { convertToBaseUnit, getUnitType, VOLUME_CONVERSIONS, WEIGHT_CONVERSIONS } from '../helpers/unitConversions';
 import DayColumn from './DayColumn';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { usePantry } from '../hooks/usePantry';
 import AddDishModal from '../forms/AddDishModal';
 
 const ANIMATION_DURATION = 0.3;
@@ -45,6 +47,8 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     initialWeekPlan
   } = useMealPlan();
 
+  const { pantryItems, savePantryItem, loadPantryItems } = usePantry();
+
   const [weekPlans, setWeekPlans] = useState({});
   const [currentWeek, setCurrentWeek] = useState(getWeekRange(new Date()));
   const [animationDirection, setAnimationDirection] = useState(0);
@@ -64,7 +68,6 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     };
     loadWeekData();
 
-    // Only expand all days when changing weeks (not on initial load)
     if (animationDirection !== 0) {
       const newExpandedState = {};
       DAYS_OF_WEEK.forEach(day => {
@@ -79,12 +82,9 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
   useEffect(() => {
     const today = new Date();
     const currentDayName = DAYS_OF_WEEK[today.getDay()];
-    
-    // Check if we're on desktop using window.matchMedia
     const isDesktop = window.matchMedia('(min-width: 1280px)').matches;
     
     if (isDesktop) {
-      // On desktop, expand all days by default
       const allExpanded = DAYS_OF_WEEK.reduce((acc, day) => {
         acc[day] = true;
         return acc;
@@ -92,18 +92,15 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
       setExpandedDays(allExpanded);
       setExpandState('all');
     } else {
-      // On mobile, only expand current day
       setExpandedDays({
         [currentDayName]: true
       });
       setExpandState('partial');
     }
 
-    // Listen for viewport changes
     const mediaQuery = window.matchMedia('(min-width: 1280px)');
     const handleViewportChange = (e) => {
       if (e.matches) {
-        // Switched to desktop
         const allExpanded = DAYS_OF_WEEK.reduce((acc, day) => {
           acc[day] = true;
           return acc;
@@ -114,13 +111,9 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     };
 
     mediaQuery.addEventListener('change', handleViewportChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleViewportChange);
-    };
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
   }, [DAYS_OF_WEEK]);
 
-  // Reset animation direction after animation completes
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDirection(0);
@@ -128,6 +121,106 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     
     return () => clearTimeout(timer);
   }, [currentWeek.id]);
+
+  // const findBestUnit = (baseAmount, unitType) => {
+  //   const conversions = unitType === 'volume' ? VOLUME_CONVERSIONS : WEIGHT_CONVERSIONS;
+  //   let bestUnit = Object.keys(conversions)[0];
+  //   let bestAmount = baseAmount / conversions[bestUnit];
+
+  //   for (const [unit, factor] of Object.entries(conversions)) {
+  //     const amount = baseAmount / factor;
+  //     if (amount >= 0.1 && amount < 100) {
+  //       bestUnit = unit;
+  //       bestAmount = amount;
+  //       break;
+  //     }
+  //     if (Math.abs(1 - amount) < Math.abs(1 - bestAmount)) {
+  //       bestUnit = unit;
+  //       bestAmount = amount;
+  //     }
+  //   }
+  //   return { amount: bestAmount, unit: bestUnit };
+  // };
+
+  const toggleMealCompletion = async (day, dishType, index) => {
+    const meal = currentWeekPlan[day][dishType][index];
+    const isCompleted = !meal.completed || false;
+    
+    try {
+      // First update the meal plan
+      const updatedWeekPlan = {
+        ...currentWeekPlan,
+        [day]: {
+          ...currentWeekPlan[day],
+          [dishType]: currentWeekPlan[day][dishType].map((m, i) => 
+            i === index ? { ...m, completed: isCompleted } : m
+          )
+        }
+      };
+
+      await saveMealPlan(updatedWeekPlan, currentWeek.id);
+      setWeekPlans(prev => ({ ...prev, [currentWeek.id]: updatedWeekPlan }));
+      
+      // Then handle pantry updates
+      const dish = dishes.find(d => d.id === meal.id);
+      if (!dish?.ingredients) return;
+
+      // Reload pantry items to ensure we have the latest state
+      await loadPantryItems();
+      
+      for (const ingredient of dish.ingredients) {
+        const matchingPantryItems = pantryItems.filter(item => 
+          item.name.toLowerCase() === ingredient.name.toLowerCase()
+        );
+        
+        if (matchingPantryItems.length === 0) continue;
+
+        const ingredientType = getUnitType(ingredient.unit);
+        const ingredientBaseAmount = convertToBaseUnit(ingredient.amount, ingredient.unit);
+
+        if (!ingredientType || ingredientBaseAmount === null) continue;
+        let remainingAmount = isCompleted ? -ingredientBaseAmount : ingredientBaseAmount;
+
+        // Sort pantry items by amount in base units
+        const sortedPantryItems = matchingPantryItems.sort((a, b) => {
+          const aBase = convertToBaseUnit(a.amount, a.unit) || 0;
+          const bBase = convertToBaseUnit(b.amount, b.unit) || 0;
+          return bBase - aBase;
+        });
+
+        for (const pantryItem of sortedPantryItems) {
+          if (remainingAmount === 0) break;
+          const pantryBaseAmount = convertToBaseUnit(pantryItem.amount, pantryItem.unit);
+          if (pantryBaseAmount === null) continue;
+
+          const newBaseAmount = pantryBaseAmount + remainingAmount;
+          
+          if (newBaseAmount >= 0) {
+            let bestAmount = newBaseAmount;
+            if (ingredientType !== 'count') {
+              const conversions = ingredientType === 'volume' ? VOLUME_CONVERSIONS : WEIGHT_CONVERSIONS;
+              // let bestUnit = pantryItem.unit;
+              bestAmount = newBaseAmount / conversions[pantryItem.unit];
+            }
+
+            await savePantryItem({
+              ...pantryItem,
+              amount: bestAmount.toFixed(2)
+            });
+            remainingAmount = 0;
+          } else {
+            await savePantryItem({
+              ...pantryItem,
+              amount: "0"
+            });
+            remainingAmount += pantryBaseAmount;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle meal completion:', err);
+    }
+  };
 
   const changeWeek = (direction) => {
     setAnimationDirection(direction);
@@ -200,8 +293,6 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     }
   };
 
-  const currentWeekPlan = weekPlans[currentWeek.id] || initialWeekPlan;
-
   const handleExpandStateChange = (newState) => {
     setExpandState(newState);
     const newExpandedState = {};
@@ -227,6 +318,8 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     setSelectedDishType(dishType);
     setShowModal(true);
   };
+
+  const currentWeekPlan = weekPlans[currentWeek.id] || initialWeekPlan;
 
   if (isLoading && Object.keys(weekPlans).length === 0) {
     return (
@@ -308,6 +401,7 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
                 onToggleExpand={toggleDayExpansion}
                 onAddDish={handleAddDishClick}
                 onRemoveDish={removeDishFromDay}
+                onToggleCompletion={toggleMealCompletion}
                 weekPlan={currentWeekPlan}
                 isCurrentDay={isCurrentDay(day)}
                 isPastDay={isPastDay(day)}
@@ -338,6 +432,7 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
                 onToggleExpand={toggleDayExpansion}
                 onAddDish={handleAddDishClick}
                 onRemoveDish={removeDishFromDay}
+                onToggleCompletion={toggleMealCompletion}
                 weekPlan={currentWeekPlan}
                 isCurrentDay={isCurrentDay(day)}
                 isPastDay={isPastDay(day)}
