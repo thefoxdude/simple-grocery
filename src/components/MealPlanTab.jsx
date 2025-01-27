@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { convertToBaseUnit, getUnitType, VOLUME_CONVERSIONS, WEIGHT_CONVERSIONS } from '../helpers/unitConversions';
 import DayColumn from './DayColumn';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePantry } from '../hooks/usePantry';
 import AddDishModal from '../forms/AddDishModal';
+import { PantryUpdater } from '../helpers/PantryUpdater';
 
 const ANIMATION_DURATION = 0.3;
 
@@ -122,25 +122,9 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     return () => clearTimeout(timer);
   }, [currentWeek.id]);
 
-  // const findBestUnit = (baseAmount, unitType) => {
-  //   const conversions = unitType === 'volume' ? VOLUME_CONVERSIONS : WEIGHT_CONVERSIONS;
-  //   let bestUnit = Object.keys(conversions)[0];
-  //   let bestAmount = baseAmount / conversions[bestUnit];
-
-  //   for (const [unit, factor] of Object.entries(conversions)) {
-  //     const amount = baseAmount / factor;
-  //     if (amount >= 0.1 && amount < 100) {
-  //       bestUnit = unit;
-  //       bestAmount = amount;
-  //       break;
-  //     }
-  //     if (Math.abs(1 - amount) < Math.abs(1 - bestAmount)) {
-  //       bestUnit = unit;
-  //       bestAmount = amount;
-  //     }
-  //   }
-  //   return { amount: bestAmount, unit: bestUnit };
-  // };
+  useEffect(() => {
+    loadPantryItems();
+  }, [loadPantryItems]);
 
   const toggleMealCompletion = async (day, dishType, index) => {
     const meal = currentWeekPlan[day][dishType][index];
@@ -157,65 +141,16 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
           )
         }
       };
-
+  
       await saveMealPlan(updatedWeekPlan, currentWeek.id);
       setWeekPlans(prev => ({ ...prev, [currentWeek.id]: updatedWeekPlan }));
       
-      // Then handle pantry updates
+      // Then handle pantry updates using PantryUpdater
       const dish = dishes.find(d => d.id === meal.id);
-      if (!dish?.ingredients) return;
-
-      // Reload pantry items to ensure we have the latest state
-      await loadPantryItems();
-      
-      for (const ingredient of dish.ingredients) {
-        const matchingPantryItems = pantryItems.filter(item => 
-          item.name.toLowerCase() === ingredient.name.toLowerCase()
-        );
-        
-        if (matchingPantryItems.length === 0) continue;
-
-        const ingredientType = getUnitType(ingredient.unit);
-        const ingredientBaseAmount = convertToBaseUnit(ingredient.amount, ingredient.unit);
-
-        if (!ingredientType || ingredientBaseAmount === null) continue;
-        let remainingAmount = isCompleted ? -ingredientBaseAmount : ingredientBaseAmount;
-
-        // Sort pantry items by amount in base units
-        const sortedPantryItems = matchingPantryItems.sort((a, b) => {
-          const aBase = convertToBaseUnit(a.amount, a.unit) || 0;
-          const bBase = convertToBaseUnit(b.amount, b.unit) || 0;
-          return bBase - aBase;
-        });
-
-        for (const pantryItem of sortedPantryItems) {
-          if (remainingAmount === 0) break;
-          const pantryBaseAmount = convertToBaseUnit(pantryItem.amount, pantryItem.unit);
-          if (pantryBaseAmount === null) continue;
-
-          const newBaseAmount = pantryBaseAmount + remainingAmount;
-          
-          if (newBaseAmount >= 0) {
-            let bestAmount = newBaseAmount;
-            if (ingredientType !== 'count') {
-              const conversions = ingredientType === 'volume' ? VOLUME_CONVERSIONS : WEIGHT_CONVERSIONS;
-              // let bestUnit = pantryItem.unit;
-              bestAmount = newBaseAmount / conversions[pantryItem.unit];
-            }
-
-            await savePantryItem({
-              ...pantryItem,
-              amount: bestAmount.toFixed(2)
-            });
-            remainingAmount = 0;
-          } else {
-            await savePantryItem({
-              ...pantryItem,
-              amount: "0"
-            });
-            remainingAmount += pantryBaseAmount;
-          }
-        }
+      if (dish) {
+        console.log('Updating pantry for dish:', dish); // Debug log
+        const pantryUpdater = new PantryUpdater(pantryItems, savePantryItem, loadPantryItems);
+        await pantryUpdater.completeMeal(dish, isCompleted);
       }
     } catch (err) {
       console.error('Failed to toggle meal completion:', err);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Trash2 } from 'lucide-react';
+import { ShoppingCart, Trash2, PlusCircle } from 'lucide-react';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePantry } from '../hooks/usePantry';
 import { useGroceryList } from '../hooks/useGroceryList';
@@ -7,6 +7,8 @@ import { DateRangeSelector } from '../forms/DateRangeSelector';
 import { GenerateListButton } from './GenerateListButton';
 import { GroceryLists } from './GroceryLists';
 import { generateGroceryList } from '../helpers/groceryListHelper';
+import { PantryUpdater } from '../helpers/PantryUpdater';
+import AddToPantryModal from '../forms/AddToPantryModal';
 
 const DAYS_OF_WEEK = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
@@ -14,7 +16,7 @@ const DAYS_OF_WEEK = [
 
 const GroceryTab = ({ dishes = [] }) => {
   const { loadUserMealPlan } = useMealPlan();
-  const { pantryItems, loadPantryItems } = usePantry();
+  const { pantryItems, loadPantryItems, savePantryItem } = usePantry();
   const { 
     loadGroceryList, 
     saveGroceryList, 
@@ -30,6 +32,8 @@ const GroceryTab = ({ dishes = [] }) => {
   const [availableItems, setAvailableItems] = useState([]);
   const [checkedNeededItems, setCheckedNeededItems] = useState(new Set());
   const [checkedPantryItems, setCheckedPantryItems] = useState(new Set());
+  const [showAddToPantryModal, setShowAddToPantryModal] = useState(false);
+  const [isSavingToPantry, setIsSavingToPantry] = useState(false);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -46,6 +50,39 @@ const GroceryTab = ({ dishes = [] }) => {
     };
     loadInitialData();
   }, [loadPantryItems, loadGroceryList]);
+
+  const handleAddToPantry = async (items) => {
+    setIsSavingToPantry(true);
+    try {
+      const pantryUpdater = new PantryUpdater(pantryItems, savePantryItem, loadPantryItems);
+      await pantryUpdater.completeGroceryItems(items);
+
+      // Move checked items to available list
+      const checkedItemsList = Array.from(checkedNeededItems).map(index => neededItems[index]);
+      const updatedNeededItems = neededItems.filter((_, index) => !checkedNeededItems.has(index));
+      const updatedAvailableItems = [...availableItems, ...checkedItemsList];
+
+      // Update grocery list
+      await saveGroceryList({
+        startDate,
+        endDate,
+        neededItems: updatedNeededItems,
+        availableItems: updatedAvailableItems,
+        checkedNeededItems: [],
+        checkedPantryItems: updatedAvailableItems.map((_, index) => index)
+      });
+
+      setNeededItems(updatedNeededItems);
+      setAvailableItems(updatedAvailableItems);
+      setCheckedNeededItems(new Set());
+      setCheckedPantryItems(new Set(updatedAvailableItems.map((_, index) => index)));
+      setShowAddToPantryModal(false);
+    } catch (error) {
+      console.error('Error adding items to pantry:', error);
+    } finally {
+      setIsSavingToPantry(false);
+    }
+  };
 
   const normalizeDate = (date) => {
     const normalized = new Date(date);
@@ -252,18 +289,33 @@ const GroceryTab = ({ dishes = [] }) => {
           </h2>
         </div>
         
-        {(neededItems.length > 0 || availableItems.length > 0) && (
-          <button
-            onClick={handleClearList}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 
-                      dark:bg-red-600 dark:hover:bg-red-700
-                      text-white rounded-lg transition-colors duration-200
-                      flex items-center gap-2"
-          >
-            <Trash2 className="h-5 w-5" />
-            Clear List
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {checkedNeededItems.size > 0 && (
+            <button
+              onClick={() => setShowAddToPantryModal(true)}
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
+                        dark:bg-emerald-600 dark:hover:bg-emerald-700
+                        text-white rounded-lg transition-colors duration-200
+                        flex items-center gap-2"
+            >
+              <PlusCircle className="h-5 w-5" />
+              Add to Pantry
+            </button>
+          )}
+          
+          {(neededItems.length > 0 || availableItems.length > 0) && (
+            <button
+              onClick={handleClearList}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 
+                        dark:bg-red-600 dark:hover:bg-red-700
+                        text-white rounded-lg transition-colors duration-200
+                        flex items-center gap-2"
+            >
+              <Trash2 className="h-5 w-5" />
+              Clear List
+            </button>
+          )}
+        </div>
       </div>
   
       <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6
@@ -292,6 +344,13 @@ const GroceryTab = ({ dishes = [] }) => {
           onRemoveNeededItem={handleRemoveNeededItem}
         />
       </div>
+      <AddToPantryModal
+        isOpen={showAddToPantryModal}
+        onClose={() => setShowAddToPantryModal(false)}
+        checkedItems={Array.from(checkedNeededItems).map(index => neededItems[index])}
+        onSave={handleAddToPantry}
+        isSaving={isSavingToPantry}
+      />
     </div>
   );
 };
