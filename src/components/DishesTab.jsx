@@ -7,14 +7,16 @@ import { Plus, Loader, Salad } from 'lucide-react';
 
 const DishesTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingDish, setEditingDish] = useState(null);
+  const [isCopying, setIsCopying] = useState(false);
+  const [originalDishData, setOriginalDishData] = useState(null);
   const [newDish, setNewDish] = useState({ 
     name: '', 
     ingredients: [{ name: '', amount: '', unit: '' }],
     recipe: ''
   });
   const [expandedDishes, setExpandedDishes] = useState(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [editingDish, setEditingDish] = useState(null);
   
   const { 
     dishes, 
@@ -53,6 +55,20 @@ const DishesTab = () => {
       ...dish,
       ingredients: [...dish.ingredients]
     });
+    setIsCopying(false);
+    setIsModalOpen(true);
+  };
+
+  const handleCopyDish = (dish) => {
+    const dishData = {
+      ...dish,
+      ingredients: [...dish.ingredients]
+    };
+    delete dishData.id;  // Remove ID so a new one will be generated
+    
+    setOriginalDishData(dishData);
+    setNewDish(dishData);
+    setIsCopying(true);
     setIsModalOpen(true);
   };
 
@@ -60,11 +76,22 @@ const DishesTab = () => {
     if (newDish.name && newDish.ingredients.some(i => i.name)) {
       const cleanedIngredients = newDish.ingredients.filter(i => i.name);
       const dishData = {
-        name: newDish.name,
+        name: newDish.name.trim(),
         recipe: newDish.recipe || '',
         ingredients: cleanedIngredients
       };
-      
+
+      // Check for existing dish with same name
+      const duplicateDish = dishes.find(
+        dish => dish.name.toLowerCase() === dishData.name.toLowerCase() && 
+                dish.id !== editingDish?.id
+      );
+
+      if (duplicateDish) {
+        alert('A dish with this name already exists. Please choose a different name.');
+        return;
+      }
+
       if (editingDish) {
         dishData.id = editingDish.id;
       }
@@ -80,6 +107,8 @@ const DishesTab = () => {
         });
         setIsModalOpen(false);
         setEditingDish(null);
+        setIsCopying(false);
+        setOriginalDishData(null);
       } catch (err) {
         console.error('Failed to save dish:', err);
       }
@@ -113,6 +142,7 @@ const DishesTab = () => {
         <button
           onClick={() => {
             setEditingDish(null);
+            setIsCopying(false);
             setNewDish({ 
               name: '', 
               recipe: '',
@@ -121,9 +151,9 @@ const DishesTab = () => {
             setIsModalOpen(true);
           }}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
+                    dark:bg-emerald-600 dark:hover:bg-emerald-700
                     text-white rounded-lg transition-colors duration-200
-                    flex items-center gap-2
-                    dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                    flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
           Add New Dish
@@ -142,6 +172,7 @@ const DishesTab = () => {
           toggleDishExpansion={toggleDishExpansion}
           handleDeleteDish={handleDeleteDish}
           handleEditDish={handleEditDish}
+          handleCopyDish={handleCopyDish}
           isDeleting={isDeleting}
           searchQuery={searchQuery}
         />
@@ -152,6 +183,8 @@ const DishesTab = () => {
         onClose={() => {
           setIsModalOpen(false);
           setEditingDish(null);
+          setIsCopying(false);
+          setOriginalDishData(null);
           setNewDish({ 
             name: '', 
             recipe: '',
@@ -164,6 +197,8 @@ const DishesTab = () => {
         isSaving={isSaving}
         operationError={operationError}
         isEditing={!!editingDish}
+        isCopying={isCopying}
+        originalDishData={originalDishData}
       />
     </div>
   );

@@ -7,6 +7,7 @@ const DishList = ({
   toggleDishExpansion, 
   handleDeleteDish,
   handleEditDish,
+  handleCopyDish,
   isDeleting,
   searchQuery 
 }) => {
@@ -28,6 +29,7 @@ const DishList = ({
           onToggleExpand={() => toggleDishExpansion(dish.id)}
           onDelete={(e) => handleDeleteDish(dish.id, e)}
           onEdit={handleEditDish}
+          onCopy={handleCopyDish}
           isDeleting={isDeleting}
         />
       ))}

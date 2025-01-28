@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { X, Plus, Save, Loader } from 'lucide-react';
 import IngredientInput from './IngredientInput';
 
@@ -10,9 +10,11 @@ const AddNewDishModal = ({
   addDish, 
   isSaving, 
   operationError,
-  isEditing = false
+  isEditing = false,
+  isCopying = false
 }) => {
   const modalRef = useRef(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -30,7 +32,20 @@ const AddNewDishModal = ({
     };
   }, [isOpen, onClose]);
 
+  // Reset dirty state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setIsDirty(false);
+    }
+  }, [isOpen]);
+
+  const handleChange = (changeFunction) => {
+    setIsDirty(true);
+    changeFunction();
+  };
+
   const addIngredientField = () => {
+    setIsDirty(true);
     setNewDish(prev => ({
       ...prev,
       ingredients: [...prev.ingredients, { name: '', amount: '', unit: '' }]
@@ -54,6 +69,21 @@ const AddNewDishModal = ({
 
   if (!isOpen) return null;
 
+  // Helper function to get the appropriate button text
+  const getButtonText = () => {
+    if (isSaving) return "Saving...";
+    if (isEditing) return "Update Dish";
+    if (isCopying) return "Save Dish";
+    return "Add Dish";
+  };
+
+  // Helper function to get the appropriate modal title
+  const getModalTitle = () => {
+    if (isEditing) return "Edit Dish";
+    if (isCopying) return "Copy Dish";
+    return "Add New Dish";
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div 
@@ -62,7 +92,7 @@ const AddNewDishModal = ({
       >
         <div className="border-b border-emerald-100 dark:border-gray-700 p-4 flex justify-between items-center">
           <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
-            {isEditing ? 'Edit Dish' : 'Add New Dish'}
+            {getModalTitle()}
           </h3>
           <button
             onClick={onClose}
@@ -77,7 +107,7 @@ const AddNewDishModal = ({
             type="text"
             placeholder="Dish name"
             value={newDish.name}
-            onChange={(e) => setNewDish(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) => handleChange(() => setNewDish(prev => ({ ...prev, name: e.target.value })))}
             className="w-full p-2 border border-emerald-200 dark:border-gray-600 rounded-md 
                       bg-white dark:bg-gray-800 text-emerald-800 dark:text-emerald-200
                       placeholder-emerald-400 dark:placeholder-emerald-500
@@ -112,7 +142,7 @@ const AddNewDishModal = ({
           <textarea
             placeholder="Recipe instructions"
             value={newDish.recipe}
-            onChange={(e) => setNewDish(prev => ({ ...prev, recipe: e.target.value }))}
+            onChange={(e) => handleChange(() => setNewDish(prev => ({ ...prev, recipe: e.target.value })))}
             className="w-full p-2 border border-emerald-200 dark:border-gray-600 rounded-md h-32
                       bg-white dark:bg-gray-800 text-emerald-800 dark:text-emerald-200
                       placeholder-emerald-400 dark:placeholder-emerald-500
@@ -121,7 +151,15 @@ const AddNewDishModal = ({
           />
 
           <button 
-            onClick={addDish}
+            onClick={async () => {
+              if (isCopying && !isDirty) {
+                const shouldContinue = window.confirm('You haven\'t made any changes to the dish. This will create a duplicate. Continue?');
+                if (!shouldContinue) {
+                  return;
+                }
+              }
+              addDish();
+            }}
             disabled={isSaving}
             className="w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-600
                       dark:bg-emerald-600 dark:hover:bg-emerald-700
@@ -137,7 +175,7 @@ const AddNewDishModal = ({
             ) : (
               <>
                 {isEditing ? <Save className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-                <span>{isEditing ? 'Update Dish' : 'Add Dish'}</span>
+                <span>{getButtonText()}</span>
               </>
             )}
           </button>
