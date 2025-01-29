@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, MessageSquarePlus } from 'lucide-react';
+import { X, MessageSquarePlus, Bug } from 'lucide-react';
 import { useFeedback } from '../hooks/useFeedback';
 
 const FeedbackModal = ({ isOpen, onClose }) => {
@@ -36,7 +36,8 @@ const FeedbackModal = ({ isOpen, onClose }) => {
     try {
       await saveFeedback({
         enjoyment,
-        feedback
+        feedback,
+        isBugReport: enjoyment === 'bug'
       });
       
       // Reset form and close modal
@@ -74,26 +75,60 @@ const FeedbackModal = ({ isOpen, onClose }) => {
               How are you enjoying the app?
             </label>
             <div className="flex justify-center gap-8">
-              {[
-                { value: 'sad', emoji: '☹️', label: 'Not great' },
-                { value: 'neutral', emoji: '😐', label: 'It\'s okay' },
-                { value: 'happy', emoji: '😊', label: 'Love it!' }
-              ].map(option => (
+              <div className="flex gap-8">
                 <button
-                  key={option.value}
-                  onClick={() => setEnjoyment(option.value)}
+                  onClick={() => setEnjoyment('bug')}
                   className={`flex flex-col items-center p-3 rounded-lg
                             transition-all duration-200 
-                            ${enjoyment === option.value 
+                            ${enjoyment === 'bug' 
+                              ? 'bg-red-300 dark:bg-red-900 scale-110' 
+                              : 'hover:bg-emerald-50 dark:hover:bg-gray-800'}`}
+                >
+                  <Bug className="h-8 w-8 mb-1 text-emerald-500 dark:text-emerald-400" />
+                  <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                    Report Bug
+                  </span>
+                </button>
+                <button
+                  onClick={() => setEnjoyment('sad')}
+                  className={`flex flex-col items-center p-3 rounded-lg
+                            transition-all duration-200 
+                            ${enjoyment === 'sad' 
                               ? 'bg-emerald-50 dark:bg-emerald-900 scale-110' 
                               : 'hover:bg-emerald-50 dark:hover:bg-gray-800'}`}
                 >
-                  <span className="text-2xl mb-1">{option.emoji}</span>
+                  <span className="text-2xl mb-1">☹️</span>
                   <span className="text-sm text-emerald-700 dark:text-emerald-300">
-                    {option.label}
+                    Not great
                   </span>
                 </button>
-              ))}
+                <button
+                  onClick={() => setEnjoyment('neutral')}
+                  className={`flex flex-col items-center p-3 rounded-lg
+                            transition-all duration-200 
+                            ${enjoyment === 'neutral' 
+                              ? 'bg-emerald-50 dark:bg-emerald-900 scale-110' 
+                              : 'hover:bg-emerald-50 dark:hover:bg-gray-800'}`}
+                >
+                  <span className="text-2xl mb-1">😐</span>
+                  <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                    It's okay
+                  </span>
+                </button>
+                <button
+                  onClick={() => setEnjoyment('happy')}
+                  className={`flex flex-col items-center p-3 rounded-lg
+                            transition-all duration-200 
+                            ${enjoyment === 'happy' 
+                              ? 'bg-emerald-50 dark:bg-emerald-900 scale-110' 
+                              : 'hover:bg-emerald-50 dark:hover:bg-gray-800'}`}
+                >
+                  <span className="text-2xl mb-1">😊</span>
+                  <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                    Love it!
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
