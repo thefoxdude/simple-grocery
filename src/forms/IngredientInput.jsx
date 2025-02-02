@@ -51,7 +51,7 @@ const IngredientInput = ({ ingredient, onChange, onRemove }) => {
   };
 
   return (
-    <div className="flex gap-2 items-center animate-fadeIn">
+    <div className="flex flex-col sm:flex-row gap-2 animate-fadeIn">
       <input
         type="text"
         placeholder="Ingredient name"
@@ -60,86 +60,89 @@ const IngredientInput = ({ ingredient, onChange, onRemove }) => {
         className={`flex-1 ${inputClasses}`}
         aria-label="Ingredient name"
       />
-      <input
-        type="text"
-        placeholder="Amount"
-        value={ingredient.amount}
-        onChange={(e) => onChange('amount', e.target.value)}
-        className={`w-24 ${inputClasses}`}
-        aria-label="Ingredient amount"
-      />
       
-      <div className="relative w-40">
-        <div
-          onClick={() => setIsUnitsOpen(true)}
-          className={`w-full cursor-pointer ${inputClasses} flex items-center justify-between`}
-        >
-          <input
-            type="text"
-            placeholder="Unit"
-            value={unitSearch}
-            onChange={(e) => {
-              setUnitSearch(e.target.value);
-              setIsUnitsOpen(true);
-              setActiveIndex(0);
-            }}
-            onFocus={() => setIsUnitsOpen(true)}
-            onKeyDown={handleKeyDown}
-            className="w-full focus:outline-none bg-transparent dark:bg-transparent"
-          />
-          <ChevronDown className="h-4 w-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
-        </div>
+      <div className="flex flex-row gap-2 sm:flex-none">
+        <input
+          type="text"
+          placeholder="Amount"
+          value={ingredient.amount}
+          onChange={(e) => onChange('amount', e.target.value)}
+          className={`w-full sm:w-24 ${inputClasses}`}
+          aria-label="Ingredient amount"
+        />
+        
+        <div className="relative w-full sm:w-40">
+          <div
+            onClick={() => setIsUnitsOpen(true)}
+            className={`w-full cursor-pointer ${inputClasses} flex items-center justify-between`}
+          >
+            <input
+              type="text"
+              placeholder="Unit"
+              value={unitSearch}
+              onChange={(e) => {
+                setUnitSearch(e.target.value);
+                setIsUnitsOpen(true);
+                setActiveIndex(0);
+              }}
+              onFocus={() => setIsUnitsOpen(true)}
+              onKeyDown={handleKeyDown}
+              className="w-full focus:outline-none bg-transparent dark:bg-transparent"
+            />
+            <ChevronDown className="h-4 w-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
+          </div>
 
-        {isUnitsOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 
+          {isUnitsOpen && (
+            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 
                          border border-emerald-200 dark:border-gray-600
                          rounded-md shadow-lg max-h-60 overflow-auto">
-            {Object.entries(MEASUREMENT_UNITS).map(([category, units]) => (
-              <div key={category}>
-                <div className="px-3 py-1 text-sm font-semibold text-emerald-800 
+              {Object.entries(MEASUREMENT_UNITS).map(([category, units]) => (
+                <div key={category}>
+                  <div className="px-3 py-1 text-sm font-semibold text-emerald-800 
                               dark:text-emerald-200 bg-emerald-50 dark:bg-gray-700">
-                  {category}
-                </div>
-                {units
-                  .filter(unit => unit.toLowerCase().includes(unitSearch.toLowerCase()))
-                  .map((unit, index) => (
-                    <div
-                      key={unit}
-                      onClick={() => {
-                        onChange('unit', unit);
-                        setUnitSearch(unit);
-                        setIsUnitsOpen(false);
-                      }}
-                      className={`px-3 py-2 cursor-pointer flex items-center justify-between
+                    {category}
+                  </div>
+                  {units
+                    .filter(unit => unit.toLowerCase().includes(unitSearch.toLowerCase()))
+                    .map((unit) => (
+                      <div
+                        key={unit}
+                        onClick={() => {
+                          onChange('unit', unit);
+                          setUnitSearch(unit);
+                          setIsUnitsOpen(false);
+                        }}
+                        className={`px-3 py-2 cursor-pointer flex items-center justify-between
                                 ${filteredUnits[activeIndex] === unit 
                                   ? 'bg-emerald-100 dark:bg-emerald-900' 
                                   : 'hover:bg-emerald-50 dark:hover:bg-gray-700'}
                                 text-emerald-800 dark:text-emerald-200`}
-                    >
-                      {unit}
-                      {ingredient.unit === unit && (
-                        <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
-                      )}
-                    </div>
-                  ))}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                      >
+                        {unit}
+                        {ingredient.unit === unit && (
+                          <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                        )}
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {onRemove && (
-        <button
-          onClick={onRemove}
-          className="p-2 text-red-400 dark:text-red-500 
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="p-2 text-red-400 dark:text-red-500 
                     hover:bg-red-50 dark:hover:bg-red-900/50 
                     rounded-full transition-colors duration-200
                     flex-shrink-0"
-          aria-label="Remove ingredient"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      )}
+            aria-label="Remove ingredient"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
