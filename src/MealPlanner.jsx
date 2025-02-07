@@ -77,10 +77,10 @@ const MealPlanner = () => {
                 onClick={() => setActiveTab('meal-plan')}
               />
               <TabButton 
-                icon={ShoppingCart} 
-                label='Grocery List' 
-                isActive={activeTab === 'grocery'} 
-                onClick={() => setActiveTab('grocery')}
+                icon={Salad} 
+                label='Dishes' 
+                isActive={activeTab === 'dishes'} 
+                onClick={() => setActiveTab('dishes')}
               />
               <TabButton 
                 icon={Warehouse} 
@@ -89,10 +89,10 @@ const MealPlanner = () => {
                 onClick={() => setActiveTab('pantry')}
               />
               <TabButton 
-                icon={Salad} 
-                label='Dishes' 
-                isActive={activeTab === 'dishes'} 
-                onClick={() => setActiveTab('dishes')}
+                icon={ShoppingCart} 
+                label='Grocery List' 
+                isActive={activeTab === 'grocery'} 
+                onClick={() => setActiveTab('grocery')}
               />
             </div>
 
