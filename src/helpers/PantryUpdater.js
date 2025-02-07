@@ -1,4 +1,4 @@
-import { convertToBaseUnit, getUnitType, VOLUME_CONVERSIONS, WEIGHT_CONVERSIONS } from './unitConversions';
+import { convertToBaseUnit, getUnitType, canCompareUnits, VOLUME_CONVERSIONS, WEIGHT_CONVERSIONS } from './unitConversions';
 
 export class PantryUpdater {
   constructor(pantryItems, savePantryItem, loadPantryItems) {
@@ -11,17 +11,28 @@ export class PantryUpdater {
     await this.loadPantryItems();
     
     for (const ingredient of ingredients) {
-      const matchingPantryItems = this.pantryItems.filter(item => 
-        item.name.toLowerCase() === ingredient.name.toLowerCase()
-      );
+      // Group matching pantry items by unit type
+      const matchingPantryItems = this.pantryItems
+        .filter(item => item.name.toLowerCase() === ingredient.name.toLowerCase())
+        .reduce((acc, item) => {
+          const unitType = getUnitType(item.unit);
+          if (!acc[unitType]) {
+            acc[unitType] = [];
+          }
+          acc[unitType].push(item);
+          return acc;
+        }, {});
       
       const ingredientType = getUnitType(ingredient.unit);
       const ingredientBaseAmount = convertToBaseUnit(ingredient.amount, ingredient.unit);
 
       if (!ingredientType || ingredientBaseAmount === null) continue;
 
-      if (matchingPantryItems.length === 0) {
-        // Create new pantry item if no matches found
+      // Get pantry items with compatible units
+      const compatibleItems = matchingPantryItems[ingredientType] || [];
+      
+      if (compatibleItems.length === 0) {
+        // Create new pantry item if no compatible matches found
         if (isAdding) {
           await this.savePantryItem({
             name: ingredient.name,
@@ -34,8 +45,8 @@ export class PantryUpdater {
 
       let remainingAmount = isAdding ? ingredientBaseAmount : -ingredientBaseAmount;
 
-      // Sort pantry items by amount in base units
-      const sortedPantryItems = matchingPantryItems.sort((a, b) => {
+      // Sort compatible pantry items by amount in base units
+      const sortedPantryItems = compatibleItems.sort((a, b) => {
         const aBase = convertToBaseUnit(a.amount, a.unit) || 0;
         const bBase = convertToBaseUnit(b.amount, b.unit) || 0;
         return bBase - aBase;
@@ -43,6 +54,10 @@ export class PantryUpdater {
 
       for (const pantryItem of sortedPantryItems) {
         if (remainingAmount === 0) break;
+        
+        // Skip if units are incompatible
+        if (!canCompareUnits(pantryItem.unit, ingredient.unit)) continue;
+
         const pantryBaseAmount = convertToBaseUnit(pantryItem.amount, pantryItem.unit);
         if (pantryBaseAmount === null) continue;
 
@@ -71,9 +86,15 @@ export class PantryUpdater {
 
       // If there's still remaining amount after updating existing items, create a new item
       if (remainingAmount > 0 && isAdding) {
+        let amount = remainingAmount;
+        if (ingredientType !== 'count') {
+          const conversions = ingredientType === 'volume' ? VOLUME_CONVERSIONS : WEIGHT_CONVERSIONS;
+          amount = remainingAmount / conversions[ingredient.unit];
+        }
+        
         await this.savePantryItem({
           name: ingredient.name,
-          amount: remainingAmount.toFixed(2),
+          amount: amount.toFixed(2),
           unit: ingredient.unit
         });
       }
