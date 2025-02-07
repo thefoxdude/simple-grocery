@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { X, Plus, Save, Loader } from 'lucide-react';
 import IngredientInput from './IngredientInput';
+import TagSelector from '../components/TagSelector';
 
 const AddNewDishModal = ({ 
   isOpen, 
@@ -134,6 +135,14 @@ const AddNewDishModal = ({
           >
             <Plus className="h-4 w-4 mr-2" /> Add Ingredient
           </button>
+
+          <div className="space-y-2">
+            <h4 className="font-medium text-emerald-700 dark:text-emerald-300">Tags:</h4>
+            <TagSelector
+              selectedTags={newDish.tags || []}
+              onTagsChange={(tags) => handleChange(() => setNewDish(prev => ({ ...prev, tags })))}
+            />
+          </div>
 
           {operationError && (
             <div className="text-red-500 dark:text-red-400 text-sm">{operationError}</div>

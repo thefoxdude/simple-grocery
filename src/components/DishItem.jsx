@@ -99,6 +99,25 @@ const DishItem = ({
                 ))}
               </ul>
             </div>
+            {dish.tags && dish.tags.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
+                  Tags:
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {dish.tags.map(tag => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900 
+                                text-emerald-700 dark:text-emerald-300 
+                                rounded-full text-sm font-medium"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             {dish.recipe && (
               <div className="space-y-2">
                 <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">

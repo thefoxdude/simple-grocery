@@ -68,6 +68,7 @@ export const useDishes = () => {
         const dishesRef = collection(db, 'dishes');
         const newDishData = {
           ...dishData,
+          tags: dishData.tags || [],
           userId,
           createdAt: new Date().toISOString()
         };

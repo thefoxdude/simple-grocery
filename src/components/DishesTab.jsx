@@ -14,6 +14,7 @@ const DishesTab = () => {
   const [newDish, setNewDish] = useState({ 
     name: '', 
     ingredients: [{ name: '', amount: '', unit: '' }],
+    tags: [],
     recipe: ''
   });
   const [expandedDishes, setExpandedDishes] = useState(new Set());
@@ -53,7 +54,8 @@ const DishesTab = () => {
     setEditingDish(dish);
     setNewDish({
       ...dish,
-      ingredients: [...dish.ingredients]
+      ingredients: [...dish.ingredients],
+      tabs: [...dish.tabs]
     });
     setIsCopying(false);
     setIsModalOpen(true);
@@ -103,6 +105,7 @@ const DishesTab = () => {
         setNewDish({ 
           name: '', 
           recipe: '',
+          tags: [],
           ingredients: [{ name: '', amount: '', unit: '' }]
         });
         setIsModalOpen(false);
