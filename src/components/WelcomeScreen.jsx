@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ShoppingCart, Warehouse, ChevronRight } from 'lucide-react';
+import { Calendar, ShoppingCart, Warehouse, ChevronRight, Salad } from 'lucide-react';
 
 const WelcomeScreen = ({ onAuthClick }) => {
   
@@ -12,11 +12,11 @@ const WelcomeScreen = ({ onAuthClick }) => {
       url: "/images/mealplanscreenshot.jpg"
     },
     {
-      icon: ShoppingCart,
-      title: "Smart Grocery Lists",
-      description: "Automatically generate shopping lists based on your meal plan. The app tracks what's in your pantry and only shows what you need to buy.",
+      icon: Salad,
+      title: "Make Your Own Dishes",
+      description: "Add your dishes the way you make them. Use the ingredients entered to generate shopping lists.",
       imagePosition: "left",
-      url: "/images/grocerylistscreenshot.jpg"
+      url: "/images/dishesscreenshot.jpg"
     },
     {
       icon: Warehouse,
@@ -24,7 +24,14 @@ const WelcomeScreen = ({ onAuthClick }) => {
       description: "Keep track of what you have at home. Never buy duplicates or run out of essentials again.",
       imagePosition: "right",
       url: "/images/pantryscreenshot.jpg"
-    }
+    },
+    {
+      icon: ShoppingCart,
+      title: "Smart Grocery Lists",
+      description: "Automatically generate shopping lists based on your meal plan. The app tracks what's in your pantry and only shows what you need to buy.",
+      imagePosition: "left",
+      url: "/images/grocerylistscreenshot.jpg"
+    },
   ];
 
   return (
@@ -113,7 +120,7 @@ const WelcomeScreen = ({ onAuthClick }) => {
             Ready to simplify your meal planning?
           </h2>
           <p className="text-xl text-emerald-600 dark:text-emerald-400">
-            Join thousands of users who have made their meal planning and grocery shopping easier.
+            Join us in making your meal planning and grocery shopping easier.
           </p>
           <button
             onClick={() => onAuthClick('signup')}
