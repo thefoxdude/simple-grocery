@@ -6,6 +6,7 @@ import { useMealPlan } from '../hooks/useMealPlan';
 import { usePantry } from '../hooks/usePantry';
 import AddDishModal from '../forms/AddDishModal';
 import { PantryUpdater } from '../helpers/PantryUpdater';
+import { useDishes } from '../hooks/useDishes';
 
 const ANIMATION_DURATION = 0.3;
 
@@ -46,6 +47,10 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     DAYS_OF_WEEK,
     initialWeekPlan
   } = useMealPlan();
+
+  const {
+      saveDish
+    } = useDishes();
 
   const { pantryItems, savePantryItem, loadPantryItems } = usePantry();
 
@@ -190,24 +195,36 @@ const MealPlanTab = ({ dishes, dinnerOnly }) => {
     return dayDate.getTime() < today.getTime();
   };
 
-  const addDishToDay = async (dishId, day, dishType) => {
-    const selectedDish = dishes.find(m => m.id === dishId);
-    if (selectedDish) {
-      const updatedWeekPlan = {
-        ...currentWeekPlan,
-        [day]: {
-          ...currentWeekPlan[day],
-          [dishType]: [...currentWeekPlan[day][dishType], selectedDish]
-        }
-      };
+  const addDishToDay = async (dishIdOrData, day, dishType, isNewDish = false) => {
+    try {
+      let selectedDish;
       
-      try {
+      if (isNewDish) {
+        // For new dishes, first save to dishes collection
+        const savedDish = await saveDish(dishIdOrData);
+        selectedDish = savedDish;
+      } else {
+        // For existing dishes, find in current dishes array
+        selectedDish = dishes.find(m => m.id === dishIdOrData);
+      }
+
+      if (selectedDish) {
+        const updatedWeekPlan = {
+          ...currentWeekPlan,
+          [day]: {
+            ...currentWeekPlan[day],
+            [dishType]: [...currentWeekPlan[day][dishType], selectedDish]
+          }
+        };
+        
         await saveMealPlan(updatedWeekPlan, currentWeek.id);
         setWeekPlans(prev => ({ ...prev, [currentWeek.id]: updatedWeekPlan }));
         setShowModal(false);
-      } catch (err) {
-        console.error('Failed to add meal:', err);
+        return selectedDish;
       }
+    } catch (err) {
+      console.error('Failed to add meal:', err);
+      throw err;
     }
   };
 
