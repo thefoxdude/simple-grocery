@@ -1,10 +1,17 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, Check, Search } from 'lucide-react';
+import { X, Check, Search, Plus } from 'lucide-react';
+import AddNewDishModal from './AddNewDishModal';
 
 const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDish }) => {
   const modalRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDish, setSelectedDish] = useState(null);
+  const [showNewDishModal, setShowNewDishModal] = useState(false);
+  const [newDish, setNewDish] = useState({ 
+    name: '', 
+    ingredients: [{ name: '', amount: '', unit: '' }],
+    recipe: ''
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -23,10 +30,46 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
     onClose();
   };
 
+  const handleNewDishSave = async () => {
+    try {
+      const savedDish = await onAddDish(newDish, selectedDay, selectedDishType, true);
+      setNewDish({ 
+        name: '', 
+        recipe: '',
+        ingredients: [{ name: '', amount: '', unit: '' }]
+      });
+      setShowNewDishModal(false);
+      onClose();
+      return savedDish;
+    } catch (err) {
+      console.error('Failed to save new dish:', err);
+      throw err;
+    }
+  };
+
   // Filter dishes based on search query
   const filteredDishes = dishes.filter(dish =>
     dish.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (showNewDishModal) {
+    return (
+      <AddNewDishModal
+        isOpen={true}
+        onClose={() => {
+          setShowNewDishModal(false);
+          setNewDish({ 
+            name: '', 
+            recipe: '',
+            ingredients: [{ name: '', amount: '', unit: '' }]
+          });
+        }}
+        newDish={newDish}
+        setNewDish={setNewDish}
+        addDish={handleNewDishSave}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -44,6 +87,18 @@ const AddDishModal = ({ selectedDay, selectedDishType, onClose, dishes, onAddDis
             <X className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
           </button>
         </div>
+
+        {/* Create New Dish Button */}
+        <button
+          onClick={() => setShowNewDishModal(true)}
+          className="w-full mb-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 
+                    dark:bg-emerald-600 dark:hover:bg-emerald-700
+                    text-white rounded-lg transition-colors duration-200
+                    flex items-center justify-center gap-2"
+        >
+          <Plus className="h-5 w-5" />
+          Create New Dish
+        </button>
 
         {/* Search Input */}
         <div className="mb-4 relative">
