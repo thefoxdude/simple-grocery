@@ -79,11 +79,12 @@ const DayColumn = ({
                           </button>
                         )}
                         <button 
-                          className="p-1 hover:bg-red-100 rounded-full transition-colors duration-200
-                                   opacity-0 group-hover:opacity-100"
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/50 
+                                    rounded-full transition-colors duration-200
+                                    opacity-0 group-hover:opacity-100"
                           onClick={() => onRemoveDish(day, dishType, idx)}
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4 text-red-400 dark:text-red-500" />
                         </button>
                       </div>
                     </div>
