@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { ArrowLeft } from 'lucide-react';
+import PasswordInput from '../forms/PasswordInput';
 
 const VIEW = {
   LOGIN: 'login',
@@ -13,6 +14,7 @@ const AuthComponent = ({ onBack, initialView }) => {
   const { login, signup, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [currentView, setCurrentView] = useState(initialView);
   const [error, setError] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -23,6 +25,10 @@ const AuthComponent = ({ onBack, initialView }) => {
 
     try {
       if (currentView === VIEW.SIGNUP) {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
         await signup(email, password);
       } else if (currentView === VIEW.LOGIN) {
         await login(email, password);
@@ -36,7 +42,12 @@ const AuthComponent = ({ onBack, initialView }) => {
         }, 3000);
       }
     } catch (err) {
-      setError(err.message);
+      // Convert Firebase error messages to user-friendly messages
+      if (err.code === 'auth/email-already-in-use') {
+        setError('There is already an account with this email');
+      } else {
+        setError(err.message);
+      }
     }
   };
 
@@ -80,7 +91,7 @@ const AuthComponent = ({ onBack, initialView }) => {
         )}
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-sm space-y-2">
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
               <input
@@ -88,7 +99,7 @@ const AuthComponent = ({ onBack, initialView }) => {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-t-md relative block w-full px-3 py-2 
+                className="appearance-none rounded-md relative block w-full px-3 py-2 
                        border border-emerald-300 dark:border-gray-600
                        placeholder-emerald-400 dark:placeholder-emerald-500
                        text-emerald-900 dark:text-emerald-100
@@ -102,26 +113,25 @@ const AuthComponent = ({ onBack, initialView }) => {
               />
             </div>
             {currentView !== VIEW.FORGOT_PASSWORD && (
-              <div>
-                <label htmlFor="password" className="sr-only">Password</label>
-                <input
+              <>
+                <PasswordInput
                   id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="appearance-none rounded-b-md relative block w-full px-3 py-2 
-                         border border-emerald-300 dark:border-gray-600
-                         placeholder-emerald-400 dark:placeholder-emerald-500
-                         text-emerald-900 dark:text-emerald-100
-                         bg-white dark:bg-gray-800
-                         focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 
-                         dark:focus:ring-emerald-500 dark:focus:border-emerald-500
-                         focus:z-10 sm:text-sm"
-                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  showBottomRadius={currentView !== VIEW.SIGNUP}
                 />
-              </div>
+                {currentView === VIEW.SIGNUP && (
+                  <PasswordInput
+                    id="confirm-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm password"
+                    isConfirm={true}
+                    mainPassword={password}
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -146,7 +156,11 @@ const AuthComponent = ({ onBack, initialView }) => {
           {currentView === VIEW.LOGIN && (
             <>
               <button
-                onClick={() => setCurrentView(VIEW.SIGNUP)}
+                onClick={() => {
+                  setCurrentView(VIEW.SIGNUP);
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
                 className="block w-full text-sm text-emerald-600 hover:text-emerald-500 
                         dark:text-emerald-400 dark:hover:text-emerald-300"
               >
@@ -160,6 +174,19 @@ const AuthComponent = ({ onBack, initialView }) => {
                 Forgot your password?
               </button>
             </>
+          )}
+          {currentView === VIEW.SIGNUP && (
+            <button
+              onClick={() => {
+                setCurrentView(VIEW.LOGIN);
+                setPassword('');
+                setConfirmPassword('');
+              }}
+              className="block w-full text-sm text-emerald-600 hover:text-emerald-500 
+                      dark:text-emerald-400 dark:hover:text-emerald-300"
+            >
+              Already have an account? Sign in
+            </button>
           )}
         </div>
       </div>
