@@ -2,7 +2,7 @@ export const TabButton = ({ icon: Icon, label, isActive, onClick }) => {
     return (
         <button
             onClick={onClick}
-            className={`flex flex-col items-center justify-center px-6 py-3
+            className={`flex flex-col items-center justify-center px-2 sm:px-6 py-3
                         border-b-2 transition-all duration-200
                         ${isActive 
                             ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400' 
@@ -10,11 +10,12 @@ export const TabButton = ({ icon: Icon, label, isActive, onClick }) => {
                             text-lg`}
             aria-selected={isActive}
             role="tab"
+            aria-label={label}
         >
-            <Icon className={`mb-1 transition-colors duration-200
+            <Icon className={`transition-colors duration-200
                             ${isActive ? 'text-emerald-500 dark:text-emerald-400' : ''}`} 
-                            size={32} />
-            <span className="font-medium">{label}</span>
+                            size={24} />
+            <span className="hidden sm:block font-medium mt-1">{label}</span>
         </button>
     );
 };
