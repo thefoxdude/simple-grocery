@@ -101,14 +101,24 @@ const FriendsTab = () => {
             My Friends ({friends.length})
           </button>
           <button
-            className={`px-4 py-2 font-medium text-sm ${
+            className={`px-4 py-2 font-medium text-sm relative ${
               activeSection === 'requests'
                 ? 'border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400'
                 : 'text-emerald-500 dark:text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400'
+            } ${
+              requests.incoming.length > 0 && activeSection !== 'requests'
+                ? 'animate-pulse font-bold'
+                : ''
             }`}
             onClick={() => setActiveSection('requests')}
           >
             Requests ({requests.incoming.length + requests.outgoing.length})
+            {requests.incoming.length > 0 && activeSection !== 'requests' && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs 
+                             rounded-full w-4 h-4 flex items-center justify-center">
+                {requests.incoming.length}
+              </span>
+            )}
           </button>
         </div>
 
