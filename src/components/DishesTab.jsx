@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useDishes } from '../hooks/useDishes';
+import { useDishSharing } from '../hooks/useDishSharing';
 import SearchBar from '../forms/SearchBar';
 import DishList from './DishList';
+import PendingDishesSection from './PendingDishesSection';
 import AddNewDishModal from '../forms/AddNewDishModal';
+import ShareDishModal from '../forms/ShareDishModal';
 import { Plus, Loader, Salad } from 'lucide-react';
 
 const DishesTab = () => {
@@ -17,6 +20,9 @@ const DishesTab = () => {
     recipe: ''
   });
   const [expandedDishes, setExpandedDishes] = useState(new Set());
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharingDish, setSharingDish] = useState(null);
+  const [importingDishId, setImportingDishId] = useState(null);
   
   const { 
     dishes, 
@@ -28,10 +34,20 @@ const DishesTab = () => {
     operationError, 
     loadUserDishes 
   } = useDishes();
+  
+  const {
+    pendingDishes,
+    loadPendingDishes,
+    importDish,
+    declineDish,
+    isLoading: isPendingLoading,
+    isImporting
+  } = useDishSharing();
 
   useEffect(() => {
     loadUserDishes();
-  }, [loadUserDishes]);
+    loadPendingDishes();
+  }, [loadUserDishes, loadPendingDishes]);
 
   const filteredDishes = dishes.filter(dish =>
     dish.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -70,6 +86,32 @@ const DishesTab = () => {
     setNewDish(dishData);
     setIsCopying(true);
     setIsModalOpen(true);
+  };
+  
+  const handleShareDish = (dish) => {
+    setSharingDish(dish);
+    setShowShareModal(true);
+  };
+  
+  const handleImportDish = async (sharingId) => {
+    setImportingDishId(sharingId);
+    try {
+      await importDish(sharingId, saveDish);
+      // Refresh dishes list
+      loadUserDishes();
+    } catch (error) {
+      console.error('Error importing dish:', error);
+    } finally {
+      setImportingDishId(null);
+    }
+  };
+  
+  const handleDeclineDish = async (sharingId) => {
+    try {
+      await declineDish(sharingId);
+    } catch (error) {
+      console.error('Error declining dish:', error);
+    }
   };
 
   const addDish = async () => {
@@ -124,7 +166,7 @@ const DishesTab = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isPendingLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader className="h-8 w-8 animate-spin text-emerald-500 dark:text-emerald-400" />
@@ -161,6 +203,15 @@ const DishesTab = () => {
       </div>
 
       <div className="bg-emerald-50 dark:bg-gray-800 rounded-lg p-6 space-y-6">
+        {/* Pending Dishes Section */}
+        <PendingDishesSection 
+          pendingDishes={pendingDishes}
+          onImport={handleImportDish}
+          onDecline={handleDeclineDish}
+          isImporting={isImporting}
+          importingId={importingDishId}
+        />
+        
         <SearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -173,6 +224,7 @@ const DishesTab = () => {
           handleDeleteDish={handleDeleteDish}
           handleEditDish={handleEditDish}
           handleCopyDish={handleCopyDish}
+          handleShareDish={handleShareDish}
           isDeleting={isDeleting}
           searchQuery={searchQuery}
         />
@@ -199,6 +251,15 @@ const DishesTab = () => {
         isEditing={!!editingDish}
         isCopying={isCopying}
         originalDishData={originalDishData}
+      />
+      
+      <ShareDishModal
+        isOpen={showShareModal}
+        onClose={() => {
+          setShowShareModal(false);
+          setSharingDish(null);
+        }}
+        dish={sharingDish}
       />
     </div>
   );

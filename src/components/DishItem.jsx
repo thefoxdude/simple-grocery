@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Loader, Trash2, Pencil, Copy } from 'lucide-react';
+import { ChevronDown, Loader, Trash2, Pencil, Copy, Share2 } from 'lucide-react';
 
 const DishItem = ({ 
   dish, 
@@ -8,6 +8,7 @@ const DishItem = ({
   onDelete, 
   onEdit,
   onCopy,
+  onShare,
   isDeleting 
 }) => {
   return (
@@ -36,6 +37,17 @@ const DishItem = ({
             />
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare(dish);
+              }}
+              className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 
+                        rounded-full transition-colors duration-200"
+              aria-label="Share dish with friend"
+            >
+              <Share2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();

@@ -8,6 +8,7 @@ const DishList = ({
   handleDeleteDish,
   handleEditDish,
   handleCopyDish,
+  handleShareDish,
   isDeleting,
   searchQuery 
 }) => {
@@ -30,6 +31,7 @@ const DishList = ({
           onDelete={(e) => handleDeleteDish(dish.id, e)}
           onEdit={handleEditDish}
           onCopy={handleCopyDish}
+          onShare={handleShareDish}
           isDeleting={isDeleting}
         />
       ))}
