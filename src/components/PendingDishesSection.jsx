@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ChevronDown, Download, X, Loader, Mail, Package } from 'lucide-react';
-import { useDishSharing } from '../hooks/useDishSharing';
 
 const PendingDishesSection = ({ pendingDishes, onImport, onDecline, isImporting, importingId }) => {
   const [isExpanded, setIsExpanded] = useState(true);
