@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Calendar, Loader, Salad, Warehouse } from 'lucide-react';
+import { ShoppingCart, Calendar, Loader, Salad, Warehouse, Users } from 'lucide-react';
 import MealPlanTab from './components/MealPlanTab';
 import DishesTab from './components/DishesTab';
 import { useDishes } from './hooks/useDishes';
@@ -13,6 +13,7 @@ import { useSettings } from './hooks/useSettings';
 import Footer from './components/Footer';
 import CustomInstallBanner from './components/CustomInstallBanner';
 import VersionChecker from './components/VersionChecker';
+import FriendsTab from './components/FriendsTab';
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
@@ -69,7 +70,7 @@ const MealPlanner = () => {
           </div>
           
           <div className="w-full">
-            <div className="grid grid-cols-4 border-b border-emerald-100 dark:border-gray-700 mb-6 py-2">
+            <div className="grid grid-cols-5 border-b border-emerald-100 dark:border-gray-700 mb-6 py-2">
               <TabButton 
                 icon={Calendar} 
                 label='Meal Plan' 
@@ -94,6 +95,12 @@ const MealPlanner = () => {
                 isActive={activeTab === 'grocery'} 
                 onClick={() => setActiveTab('grocery')}
               />
+              <TabButton 
+                icon={Users} 
+                label='Friends' 
+                isActive={activeTab === 'friends'} 
+                onClick={() => setActiveTab('friends')}
+              />
             </div>
 
             {activeTab === 'meal-plan' && (
@@ -115,6 +122,9 @@ const MealPlanner = () => {
             )}
             {activeTab === 'dishes' && (
               <DishesTab />
+            )}
+            {activeTab === 'friends' && (
+              <FriendsTab />
             )}
           </div>
         </div>

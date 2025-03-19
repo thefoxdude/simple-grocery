@@ -1,4 +1,7 @@
-export const TabButton = ({ icon: Icon, label, isActive, onClick }) => {
+import React from 'react';
+import NotificationBadge from './NotificationBadge';
+
+export const TabButton = ({ icon: Icon, label, isActive, onClick, notificationCount }) => {
     return (
         <button
             onClick={onClick}
@@ -11,10 +14,13 @@ export const TabButton = ({ icon: Icon, label, isActive, onClick }) => {
             aria-selected={isActive}
             role="tab"
         >
-            <Icon className={`mb-1 transition-colors duration-200
+            <div className="relative">
+                <Icon className={`mb-1 transition-colors duration-200
                             ${isActive ? 'text-emerald-500 dark:text-emerald-400' : ''}`} 
-                            size={32} />
-            <span className="font-medium">{label}</span>
+                            size={24} />
+                <NotificationBadge count={notificationCount} />
+            </div>
+            <span className="hidden sm:block font-medium mt-1">{label}</span>
         </button>
     );
 };
