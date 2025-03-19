@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, UserPlus, Loader, Mail } from 'lucide-react';
 import { useFriends } from '../hooks/useFriends';
 
@@ -9,6 +9,16 @@ const SendRequestModal = ({ isOpen, onClose }) => {
   const [success, setSuccess] = useState(false);
   
   const { sendFriendRequest, isSaving } = useFriends();
+
+  // Use useCallback to memoize the handleClose function
+  const handleClose = useCallback(() => {
+    if (!isSaving) {
+      setEmail('');
+      setError(null);
+      setSuccess(false);
+      onClose();
+    }
+  }, [isSaving, onClose]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -24,16 +34,7 @@ const SendRequestModal = ({ isOpen, onClose }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
-
-  const handleClose = () => {
-    if (!isSaving) {
-      setEmail('');
-      setError(null);
-      setSuccess(false);
-      onClose();
-    }
-  };
+  }, [isOpen, handleClose]);
 
   const handleSubmit = async () => {
     setError(null);
