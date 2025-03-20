@@ -30,15 +30,13 @@ const PendingDishesSection = ({ pendingDishes, onImport, onDecline, isImporting,
               key={sharing.id} 
               className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-emerald-100 dark:border-gray-700 shadow-sm"
             >
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-emerald-800 dark:text-emerald-200">
-                  {sharing.dish.name}
-                </h4>
-                <div className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm">
-                  <Mail className="h-4 w-4 mr-1" />
-                  From: <span className="ml-1 font-medium">{sharing.senderEmail}</span>
-                </div>
+              <div className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm mb-1">
+                <Mail className="h-4 w-4 mr-1" />
+                <span className="font-medium">From: {sharing.senderEmail}</span>
               </div>
+              <h4 className="font-medium text-emerald-800 dark:text-emerald-200 mb-2">
+                {sharing.dish.name}
+              </h4>
 
               {/* Ingredients preview */}
               {sharing.dish.ingredients && sharing.dish.ingredients.length > 0 && (
