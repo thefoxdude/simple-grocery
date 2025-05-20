@@ -14,6 +14,9 @@ import Footer from './components/Footer';
 import CustomInstallBanner from './components/CustomInstallBanner';
 import VersionChecker from './components/VersionChecker';
 import FriendsTab from './components/FriendsTab';
+import { useSubscriptionContext } from './contexts/SubscriptionProvider';
+import SubscriptionWall from './components/SubscriptionWall';
+import SubscriptionBadge from './components/SubscriptionBadge';
 
 const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState("meal-plan");
@@ -23,6 +26,7 @@ const MealPlanner = () => {
   
   const { dishes, loadUserDishes, isLoading: dishesLoading, error: dishesError } = useDishes();
   const { logout } = useAuth();
+  const { isSubscriptionActive } = useSubscriptionContext();
 
   useEffect(() => {
     loadUserDishes();
@@ -59,6 +63,10 @@ const MealPlanner = () => {
     );
   }
 
+  if (!isSubscriptionActive) {
+    return <SubscriptionWall />
+  }
+
   return (
     <div className="dark:bg-gray-900 min-h-screen pb-20">
       <div className="container mx-auto p-6">
@@ -67,6 +75,7 @@ const MealPlanner = () => {
             <h1 className="text-3xl font-bold text-emerald-800 dark:text-emerald-400">
               Simple Meals
             </h1>
+            <SubscriptionBadge />
           </div>
           
           <div className="w-full">
